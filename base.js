@@ -15,6 +15,7 @@ $(function(){
 		var cfg = {
 			name: name,
 			onAdd: function(url){
+				if(!url) return;
 				if(url.indexOf('http://')<0)
 					url = 'http://'+url;
 

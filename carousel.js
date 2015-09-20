@@ -36,7 +36,7 @@ Carousel.prototype = {
 		var $thumb;
 		
 		if(d.thumb){
-			var url = (d.thumb.indexOf('http://')+1)?d.thumb:('/thumb/'+d.thumb);
+			var url = d.thumb;//(d.thumb.indexOf('http://')+1)?d.thumb:('/thumb/'+d.thumb);
 			var $thumb = this.createThumb(d._id, url);
 			$thumb.appendTo(this.$t).data(d);
 		}
@@ -307,7 +307,21 @@ Carousel.prototype = {
 				delete pix.move;
 				delete pix.slide;
 
-				console.log('end');
+				var newCarousel = $thumb.parent()[0].carousel
+				//console.log($thumb.parent()[0]);
+				if(t.$t[0] != $thumb.parent()[0]){
+					$thumb.removeClass('clone');
+
+					var targets = $.event.special.drop.targets;
+					t.$t.children('span[href="'+$thumb.attr('href')+'"]').each(function(){
+						var index = targets.indexOf(this);
+						targets.splice(index, 1);
+					}).remove();
+
+					t.expand();
+					newCarousel.expand();
+					newCarousel.supportEvents($thumb);
+				}
 			},100);
 
 			pix.drag = false;
@@ -343,8 +357,18 @@ Carousel.prototype = {
 					//t.$t.children('span:.clone').remove();
 				}
 				else{
+					var $drag = $(dd.drag);
+
 					var bfr = (this.parentNode == dd.drag.parentNode && $(this).index() <= $(dd.drag).index());
+					
 					$(dd.drag)['insert'+((bfr)?'Before':'After')](this);
+
+					var $over = $thumb.siblings('span[href="'+$thumb.attr('href')+'"]');
+					var $drags = $drag.siblings('span[href="'+$drag.attr('href')+'"]:not(.drag)').each(function(i){
+						console.log(i);
+						$(this)['insert'+((bfr)?'Before':'After')]($over[i]);
+					});
+					console.log($drags);
 				}
 
 				dd.update();
@@ -353,7 +377,7 @@ Carousel.prototype = {
 		}).drop(function(ev, dd){
 			console.log(this);
 		}).drop("end",function(ev, dd){
-			console.log('dropEnd');
+			console.log(this);
 		});
 	},
 
@@ -553,7 +577,11 @@ Carousel.prototype = {
 					img.onload = function(){
 						pix.saveThumb(img, function(thumbName){
 							if(thumbName)
-								$.query('/tree/add', {tid: pix.tid, file: parseInt(r.file.id), path: t.name, thumb: thumbName}, function(r){
+								$.query('/tree/add', {
+									tid: pix.tid,
+									file: parseInt(r.file.id),
+									path: t.name, thumb: thumbName
+								}, function(r){
 									if(r.item) t.add(r.item);
 								});
 						});
