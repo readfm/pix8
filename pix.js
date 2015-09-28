@@ -7,6 +7,14 @@ var pix = window.pix = {
 
 	carousels: [],
 
+
+	cleanTargets: function(){
+		var targets = $.event.special.drop.targets;
+		for(var i = targets.length-1; i--;){
+			if(!targets[i].parentElement) targets.splice(i, 1);
+		}
+	},
+
 	parseVideoURL: function(url){
 	 	function getParm(url, base){
 		      var re = new RegExp("(\\?|&)" + base + "\\=([^&]*)(&|$)");
@@ -78,97 +86,6 @@ var pix = window.pix = {
 			});
 		}
 	},
-
-
-	download: function(url, cb){
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = function(){
-			if (this.readyState == 4 && this.status == 200){
-				console.log(this.response);
-				cb(this.response);
-			}
-		}
-		xhr.open('GET', url);
-		xhr.responseType = 'blob';
-		xhr.send();
-	},
-
-	generateThumb: function(img ,wh, cb){
-		var ctx = document.createElement('canvas').getContext('2d');
-		ctx.canvas.width = ctx.canvas.height = wh;
-
-		var w = h = wh;
-		
-		/*
-		ctx.fillStyle = color || "rgba(0,0,0,0.5)";
-		ctx.beginPath();
-		var o = wh/2;
-
-		ctx.arc(o, o, o, 0, Math.PI*2, false);
-		ctx.fill();
-		ctx.clip();
-		*/
-		
-
-		var ratio = img.width/img.height;
-		if(w/h > ratio)
-			var height = Math.round(w/ratio),
-				width = w;
-		else
-			var width = Math.round(h*ratio),
-				height = h;
-
-		ctx.drawImage(img, (w-width)/2, (h-height)/2, width, height);
-		
-
-		if(cb) ctx.canvas.toBlob(cb);
-		//else{
-			var image = new Image;
-			image.src = ctx.canvas.toDataURL("image/png");
-			return image;
-			$(document).append(image);
-		//}
-	},
-
-	toBlob: function(image, type){
-		var str = image.toDataURL("image/"+type, 1);
-
-		var binary = atob(str.split(',')[1]);
-		var array = [];
-		for(var i = 0; i < binary.length; i++){
-			array.push(binary.charCodeAt(i));
-		}
-		return new Blob([new Uint8Array(array)], {type: 'image/'+type});
-	},
-
-	saveThumb: function(img, cb){
-		pix.generateThumb(img, pix.thumbH, function(blob){
-			$.ajax('/thumb/'+randomString(8), {
-				data: blob,
-				processData: false,
-				success: function(r){
-					cb(r.name);
-				},
-				complete: function(){
-				},
-				type: 'PUT'
-			});
-		});
-	},
-
-	generateImage: function(blob, cb){
-		var img = new Image();
-		img.onload = function(){
-			cb(img);
-		}
-
-		var reader = new FileReader();
-		reader.onload = function(ev){
-			img.src = ev.target.result;
-		};
-		reader.readAsDataURL(blob);
-	},
-	
 	show: function(el){
 		$el = $(el);
 		if(!$el.length) return;
@@ -229,6 +146,7 @@ var pix = window.pix = {
 				pix.load($(frame));
 		}
 		else{
+			return;
 			var image = new Image();
 			//image.onload = image.onerror = img.load;
 			image.id = 'img'+$el.data('_id');
@@ -281,18 +199,6 @@ var pix = window.pix = {
 		//$('#image').triggerHandler('loaded');
 	},
 
-
-
-	save: function(){
-		var record = {
-			name: 'carousel-'+this.name,
-			list: this.getList(),
-			id: randomString(8)
-		};
-		
-		ws.send({cmd: 'saveRecord', record: record});
-	},
-
 	next: function(){
 		if(!pix.$ || $('#image').is(':hidden')) return;
 		var $next = pix.$.next();
@@ -324,76 +230,5 @@ $(function(){
 		else
 		if(ev.keyCode == 39)
 			pix.next();
-	});
-
-	return;
-
-	$('#trash').drop("start",function(){
-		$(this).addClass('on');
-		console.log('dropStart');
-		//$('.drag').insertBefore();
-	}).drop(function(ev, dd){
-		$(dd.drag).remove();
-	}).drop("end",function(ev, dd){
-		console.log('dropEnd');
-		//dd.startParent
-		$(dd.drag).add(dd.proxy).remove();
-		$(this).removeClass('on');
-	});
-
-	var uri = pix.checkPath();
-	//['brain', 'law', 'main', 'abc','bba','test','tes','tst'];
-	['!normal','!big','!small'].forEach(function(name, i){
-		var path = uri+name;
-		var cfg = {
-			name: path,
-			down2remove: false
-		};
-
-		if(name == '!small'){
-			cfg.allowPatterns = true;
-			cfg.down2remove = 0.5;
-		}
-
-		var tier = new Carousel(cfg);
-		pix.carousels.push(tier);
-
-		/*
-		ws.send({cmd: 'findRecords', filter: {name: 'search'}}, function(r){
-			if(r.records) r.records.forEach(function(record){
-				list.appendSearch(record);
-			});
-		});
-		*/
-
-		$.query('/tree', {filter: {tid: pix.tid, path: path}}, function(r){
-			tier.load(r.items);
-			pix.resize(tier.$t);
-		});
-		//if(i<3)pix.putResizer();
-	});
-
-	$.query('/tree', {filter: {tid: pix.tid, path: uri+'!my'}}, function(r){
-		var tier = new Carousel({name: uri+'!my'});
-		tier.load(r.items);
-		tier.$t[0].id='myList';
-	});
-
-	$('#ip').click(function(){
-		$('#myList').slideDown();
-	});
-
-	$(document).click(function(ev){
-		var $target = $(ev.target)
-		if(
-			!$target.parents('#myList').length && 
-			$target.attr('id') != 'myList' &&
-			$target.attr('id') != 'ip' &&
-			!$(ev.target).parents('.modal').length && 
-			!$(ev.target).parents('.options').length && 
-			$(ev.target).attr('id') != 'modal'
-		){
-			$('#myList').slideUp();
-		}
 	});
 });

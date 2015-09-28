@@ -15,6 +15,8 @@ var Carousel = function(opt){
 	this.$t[0].carousel = this;
 
 	this.allowUpload();
+	this.supportOnEmpty();
+
 
 	console.log(this.cfg);
 };
@@ -78,23 +80,53 @@ Carousel.prototype = {
 
 	push: function(d){
 		var url = d.src;
-		var wh = this.$t.height();
+		var h = this.$t.height(),
+			t = this,
+			$thumb = $(document.createElement('span')),
+			w = h;
 
 		if(d.src){
 			var video = pix.parseVideoURL(d.src),
 				vid = video.provider;
 		}
 
+		$thumb.css({
+			'height': h,
+			'width': w
+		});
+
 		if(url.indexOf('ggif.co')+1){
 			var p = url.replace('http://', '').split(/[\/]+/);
-
 			var thumb = 'http://'+p[0]+'/'+p[1]+'/'+p[1]+'.gif';
 		}
+		else{
+			var image = new Image;
+			image.onload = function(){
+				var w = h*image.width/image.height;
 
-		var $thumb = $(document.createElement('span')).css({
-			'background-image': "url("+(thumb || url)+")",
-			'height': wh,
-			'width': wh
+				var href = $thumb.attr('href'),
+					$els = $thumb.parent().children('span[href="'+href+'"]');
+
+				$els.css({
+					width: w,
+					height: h
+				}).data({
+					width: image.width,
+					height: image.height
+				});
+			}
+			image.onerror = function(){
+				//t.remove($thumb);
+				$thumb.remove();
+				pix.cleanTargets();
+				//var href = $thumb.attr('href');
+				//$thumb.parent().children('span[href="'+href+'"]').remove();
+			}
+			image.src = url;
+		}
+
+		$thumb.css({
+			'background-image': "url("+(thumb || url)+")"
 		});
 
 		$thumb.data(d);
@@ -106,6 +138,29 @@ Carousel.prototype = {
 		this.supportEvents($thumb);
 
 		return $thumb;
+	},
+
+	remove: function(thumb, cb){
+		var $thumb = $(thumb),
+			$els = $thumb.parent().children('span[href="'+$thumb.attr('href')+'"]');
+
+		var targets = $.event.special.drop.targets;
+		var index = targets.indexOf($thumb[0]);
+
+		//targets.splice(index, 1);
+
+		$els.remove();
+		this.expand();
+
+		if(cb)
+			t.cfg.onRemove($els);
+	},
+
+	undrop: function(){
+		var targets = $.event.special.drop.targets;
+		var index = targets.indexOf(this.$t[0]);
+
+		targets.splice(this.$t[0], 1);
 	},
 
 	load: function(items){
@@ -166,11 +221,11 @@ Carousel.prototype = {
 			$(this).data('_pos', o.left+'x'+o.top);
 			dd.startParent = this.parentNode;
 
-
 			//dd.limit = $space.children().length * $space.children().outerWidth(true) - w - m;
 			dd.start = this.parentNode.scrollLeft;
 
 			var $thumb = $(this).clone().insertAfter(this).hide();
+			dd.update();
 			return $thumb;
 		}).drag(function(ev, dd){
 			var $proxy = $(dd.proxy);
@@ -192,30 +247,29 @@ Carousel.prototype = {
 			else
 			if(t.cfg.down2remove && dd.deltaY > t.cfg.takeOffLimit){
 				dd.down = dd.deltaY;
+				var href = $thumb.attr('href'),
+					$els = $thumb.parent().children('span[href="'+href+'"]');
 
-				$thumb.css({
+				$els.css({
 					'background-position-y': dd.deltaY,
 					'opacity': 1.1-dd.down/th/t.cfg.down2remove
 				});
 
 				if(dd.down/th > t.cfg.down2remove){
-					var href = $thumb.attr('href'),
-						$els = $thumb.parent().children('span[href="'+href+'"]');
-
-
 					var targets = $.event.special.drop.targets;
 
 					var l = $els.length;
 					$els.hide('fast', function(){
 						var index = targets.indexOf(this);
-						console.log(index);
-						targets.splice(index, 1);
+						//targets.splice(index, 1);
 
 						if(!--l){
 							if(t.cfg.onRemove)
 								t.cfg.onRemove($thumb.data());
 
 							$els.remove();
+							pix.cleanTargets();
+
 							t.expand();
 						}
 					});
@@ -250,29 +304,24 @@ Carousel.prototype = {
 				var x = dd.start - dd.deltaX;
 				if(Math.abs(dd.deltaX) > t.cfg.slideLimit && dd.deltaX != 0)
 					pix.slide = dd.deltaX;
-				//if(x > dd.limit) x = dd.limit;
 
-				
-				
-				if(t.cfg.allowPatterns){
-					if(x > tw)
-						t.$t.children('span:first-child').appendTo(t.$t);
-					else
-					if(x < 0)
-						t.$t.children('span:last-child').prependTo(t.$t);
-				}
-			
-				if(x > tw && t.cfg.allowPatterns){
-					dd.start -= tw+1;
-					this.parentNode.scrollLeft = 1;
+				this.parentNode.scrollLeft = Math.max(x, 0);
+
+				var w;
+				if(x < 0){
+					w = t.$t.children('span:last-child').prependTo(t.$t).width();
+					dd.start += w;
+					this.parentNode.scrollLeft = w;
 				}
 				else
-				if(x < 0 && t.cfg.allowPatterns){
-					dd.start += tw+1;
-					this.parentNode.scrollLeft = tw;
+				if(x > (t.$t[0].scrollWidth - t.$t.width())){
+					w = t.$t.children('span:first-child').appendTo(t.$t).width();
+					dd.start -= w;
+					this.parentNode.scrollLeft -= w;
 				}
-				else
-					this.parentNode.scrollLeft = Math.max(x, 0);
+
+
+				//console.log(x +'-'+lw+'x'+rw);
 
 				//this.parentNode.carousel.slide(dd.deltaX, t.parentElement);
 				//$(this).removeClass('draggable');
@@ -297,31 +346,45 @@ Carousel.prototype = {
 
 			if(dd.down){
 				delete dd.down;
-				$(this).css({
+
+				var $thumb = $(this),
+					href = $thumb.attr('href'),
+					$els = $thumb.parent().children('span[href="'+href+'"]');
+
+				$els.css({
 					'background-position-y': 0,
 					opacity: 1
 				});
 			}
 
+			var $thumb = $(this);
+
 			setTimeout(function(){
 				delete pix.move;
 				delete pix.slide;
 
-				var newCarousel = $thumb.parent()[0].carousel
+				var newCarousel = $thumb.parent()[0].carousel;
 				//console.log($thumb.parent()[0]);
 				if(t.$t[0] != $thumb.parent()[0]){
 					$thumb.removeClass('clone');
 
 					var targets = $.event.special.drop.targets;
 					t.$t.children('span[href="'+$thumb.attr('href')+'"]').each(function(){
-						var index = targets.indexOf(this);
-						targets.splice(index, 1);
+						//var index = targets.indexOf(this);
+						//targets.splice(index, 1);
 					}).remove();
+			
+					pix.cleanTargets();
 
 					t.expand();
 					newCarousel.expand();
 					newCarousel.supportEvents($thumb);
 				}
+
+				//console.log(this);
+				if(dd.moved && t.cfg.onMove)
+					t.cfg.onMove($thumb, t, (t.$t[0] != $thumb.parent()[0])?newCarousel:null);
+
 			},100);
 
 			pix.drag = false;
@@ -333,27 +396,34 @@ Carousel.prototype = {
 			if(parent)
 				parent.slideX = parseInt($thumb.parent().css('margin-left'));
 
-		}).drop("init",function(ev, dd){
+		}).drop("init", function(ev, dd){
 			//console.log(dd);
 			//console.log(this);
 			var $thumb = $(this);
 			//$('.drag').insertBefore();
 			return !( this == dd.drag );
-		}).drop("start",function(ev, dd){
+		}).drop("start", function(ev, dd){
 			//console.log(this);
 			var $thumb = $(this);
 			//$('.drag').insertBefore();
+			console.log(this);
 			var ok = !( this == dd.drag || !pix.drag);
 			if(ok){
+				dd.moved = true;
 				if(this.parentNode !== dd.drag.parentNode){
-
 					//t.supportEvents($(dd.drag));
-					$(dd.drag).insertBefore(this).css({
-						width: $(this).height(),
-						height: $(this).height(),
-					});
+					var $thumb = $(dd.drag),
+						d = $thumb.data(),
+						h = $(this).height();
 
-
+					$thumb.insertBefore(this);
+					if($thumb.data('src').indexOf('ggif.co')+1){
+						$thumb.css({width: h, height: h});
+					}
+					else{
+						$thumb.css('width', h*d.width/d.height);
+						$thumb.css('height', parseInt($thumb.css('width'))*d.height/d.width);//1);
+					}
 					//t.$t.children('span:.clone').remove();
 				}
 				else{
@@ -368,91 +438,40 @@ Carousel.prototype = {
 						console.log(i);
 						$(this)['insert'+((bfr)?'Before':'After')]($over[i]);
 					});
-					console.log($drags);
+
+
+					//if(t.cfg.onMove) t.cfg.onMove(t.$t.children('span:not(.clone)'));
 				}
 
 				dd.update();
 			}
 			return ok;
 		}).drop(function(ev, dd){
-			console.log(this);
+			//console.log(this);
 		}).drop("end",function(ev, dd){
-			console.log(this);
 		});
 	},
 
 	supportOnEmpty: function(){
-		this.$t.drop("init",function(ev, dd){
-			//console.log(this);
-			var $thumb = $(this);
-			console.log('dropInit');
-			//$('.drag').insertBefore();
-			return $(this).children().length;
+		var $carousel = this.$t;
+		$carousel.drop("init", function(ev, dd){
+			if($carousel.children().length) return false;
 		}).drop("start",function(ev, dd){
-			//console.log(this);
-			var $thumb = $(this);
-			//$('.drag').insertBefore();
-			var ok = !( this == dd.drag || !pix.drag);
+			console.log('drop');
+			var ok = !(!pix.drag || $carousel.children().length);
 			if(ok){
-				if(this.parentNode !== dd.drag.parentNode){
+				var $thumb = $(dd.drag),
+					d = $thumb.data(),
+					h = $carousel.height();
 
-					//t.supportEvents($(dd.drag));
-					$(dd.drag).appendTo(this).css({
-						width: $(this).height(),
-						height: $(this).height(),
-					});
-
-
-					//t.$t.children('span:.clone').remove();
-				}
-				else{
-					var bfr = (this.parentNode == dd.drag.parentNode && $(this).index() <= $(dd.drag).index());
-					$(dd.drag)['insert'+((bfr)?'Before':'After')](this);
-				}
+				$thumb.appendTo($carousel);
+				$thumb.css('width', h*d.width/d.height);
+				$thumb.css('height', parseInt($thumb.css('width'))*d.height/d.width);//1);
 
 				dd.update();
 			}
 			return ok;
 		});
-	},
-
-	slide: function(dx){
-		if(!this.$t[0].slideX)
-			this.$t[0].slideX = 0;
-		
-		var x = this.$t[0].slideX + dx,
-			tw = this.$t.children('span:last-child').width()+1;
-
-		this.$t.css('margin-left', x);
-		if(x > tw){
-			this.$t.children('span:last-child').prependTo(this.$t);
-			this.$t[0].slideX -= tw;
-		} else
-		if(x < -tw){
-			this.$t.children('span:first-child').appendTo(this.$t);
-			this.$t[0].slideX += tw;
-		}
-	
-		if(Math.abs(x) > tw)
-			this.$t.css('margin-left', 0);
-	},
-
-	drag: function(name, dy){
-		var $els = this.$t.children('span[name="'+name+'"]');
-		
-		if(Math.abs(dy) < 8) dy = 0;
-	
-		$els.css('background-position-y', dy);
-		if(dy > $els.height()/2){
-			var l = $els.length;
-			$els.hide('fast', function(){
-				var d = $(this).data();
-				$(this).remove();
-				if(!--l){
-
-				}
-			});
-		}
 	},
 
 	expand: function(){
@@ -460,10 +479,9 @@ Carousel.prototype = {
 
 		if(this.$t.children().length == 0) return;
 		var t = this;
-		var tw = this.$t.children('span:first-child').width() + 1;
-
+		var tw = this.$t.children('span:last-child').width() + 1;
 		t.removeClones();
-		while((this.$t.children('span').length * tw) < $('body').width() + tw){
+		while((this.$t.children('span').length * tw) < $('body').width() + 2*tw){
 			this.$t.children('span:not(.clone)').each(function(){
 				var $thumb = $(this),
 					$clone = $thumb.clone().appendTo(this.$t);
@@ -484,7 +502,15 @@ Carousel.prototype = {
 	},
 
 	removeClones: function(){
-		this.$t.children('.clone').remove();
+		var t = this;
+
+		this.$t.children('.clone').each(function(){
+			var targets = $.event.special.drop.targets;
+			var index = targets.indexOf(this);
+			if(index+1) targets.splice(index, 1);
+		});
+
+		this.$t.children('.clone').remove();		
 	},
 
 	getList: function(){
