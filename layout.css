@@ -31,9 +31,15 @@ header, footer{
 .carousel{
 	height: 100px;
 	overflow: hidden;
-	
-	
-	word-wrap: normal;  text-align: left;  cursor: w-resize;  margin-left: 0;      white-space: nowrap;  overflow-wrap: normal;  overflow-x: hidden;
+	word-wrap: normal;
+	text-align: left;
+	cursor: w-resize;
+	margin-left: 0;
+	white-space: nowrap;
+	overflow-wrap: normal;
+	overflow-x: hidden;
+	transition: margin-left 1s;
+	-webkit-overflow-scrolling: touch;
 }
 
 .draggable{
@@ -41,6 +47,7 @@ header, footer{
 }
 
 .carousel > span{
+	position: relative;
 	width: 100px;
 	height: 100px;
 	z-index: 20;
@@ -51,9 +58,29 @@ header, footer{
 	background-repeat: no-repeat;
 	margin: 0;
 	vertical-align: top;
-	margin: 1px;
+	margin: 0;
+	overflow: hidden;
 	opacity: 1;
 	transition: opacity 0.5s;
+}
+
+.carousel > span.ggif{
+	background-size: contain;
+	background-position: top;
+}
+
+.carousel > span > iframe{
+	width: 100%;
+	height: 100%;
+}
+
+.iframe-cover{
+	position: absolute;
+	background-color: rgba(255, 255, 255, 0.07);
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
 }
 
 .carousel > span.drop{
@@ -62,6 +89,7 @@ header, footer{
 
 .carousel > span.drag{
 	position: absolute;
+	z-index: 95;
 }
 
 .carousel > span:hover{

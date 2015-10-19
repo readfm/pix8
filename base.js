@@ -4,6 +4,7 @@ else{
 	path = path.replace('/', '~');
 }
 
+
 var base = new Firebase('https://ggif.firebaseIO.com/pix/'+path);
 //var base = new Firebase('https://blinding-heat-3662.firebaseIO.com/pix/'+path);
 
@@ -17,8 +18,7 @@ $(function(){
 		
 		var move = function($items){
 			var i = 0;
-
-			alert($items.eq(1).index());
+			//alert($items.eq(1).index());
 		};
 
 		function moveFbRecord(oldRef, newRef){    
@@ -68,9 +68,34 @@ $(function(){
 			if(add) return;
 			var item = snapshot.val();
 			item.id = snapshot.key();
-			console.log(item);
 			var $thumb = carousel.push(item);
 			//carousel.expand();
+		});
+
+		b.once("value", function(snapshot){
+			var num = snapshot.numChildren();
+			
+			if((name == '!small' && num < 5) || num < 2)
+				pix.searchGoogle(path, function(images){
+					var list = (name == '!big')?images.slice(0, 3):images.slice(4);
+					list.forEach(function(url){
+						if(url.indexOf('http://')<0)
+							url = 'http://'+url;
+
+						if($("#carousels span[href='"+url+"'").length) return;
+
+						var img = new Image();
+						img.onload = function(){
+							var item = {
+								src: url,
+								pos: carousel.$t.children().not('.clone').length
+							};
+							//var $thumb = carousel.push(item);
+							b.push(item);
+						}
+						img.src = url;
+					});
+				});
 		});
 	});
 });

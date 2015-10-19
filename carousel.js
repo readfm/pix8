@@ -2,7 +2,7 @@ var Carousel = function(opt){
 	this.cfg = $.extend(this.cfg, {
 		allowPatterns: true,
 		down2remove: 0.5,
-		takeOffLimit: 5,
+		takeOffLimit: 10,
 		slideLimit: 10
 	}, opt);
 
@@ -10,6 +10,7 @@ var Carousel = function(opt){
 	console.log(name);
 	this.$t = $("<div class='carousel'></div>").appendTo('#carousels');
 	this.$t.attr('name', name);
+	this.t = this.$t[0];
 	this.name = name;
 
 	this.$t[0].carousel = this;
@@ -17,6 +18,7 @@ var Carousel = function(opt){
 	this.allowUpload();
 	this.supportOnEmpty();
 
+	this.onScroll();
 
 	console.log(this.cfg);
 };
@@ -90,16 +92,34 @@ Carousel.prototype = {
 				vid = video.provider;
 		}
 
+		console.log(video);
+
 		$thumb.css({
 			'height': h,
 			'width': w
 		});
 
+		if(video.provider == 'youtube'){
+			var thumb = 'http://img.youtube.com/vi/'+video.id+'/sddefault.jpg';
+
+			var frame = document.createElement("iframe");
+				frame.src = 'http://www.youtube.com/embed/'+video.id;
+			$thumb.addClass('youtube').append(frame);
+			$thumb.append("<div class='iframe-cover'></div>");
+		}
+		else
 		if(url.indexOf('ggif.co')+1){
 			var p = url.replace('http://', '').split(/[\/]+/);
 			var thumb = 'http://'+p[0]+'/'+p[1]+'/'+p[1]+'.gif';
+
+			var frame = document.createElement("iframe");
+				//frame.width = h;
+				//frame.height = h;
+				frame.src = url;
+			$thumb.addClass('ggif').append(frame);
+			$thumb.append("<div class='iframe-cover'></div>");
 		}
-		else{
+		//else{
 			var image = new Image;
 			image.onload = function(){
 				var w = h*image.width/image.height;
@@ -122,12 +142,14 @@ Carousel.prototype = {
 				//var href = $thumb.attr('href');
 				//$thumb.parent().children('span[href="'+href+'"]').remove();
 			}
-			image.src = url;
-		}
+			image.src = thumb || url;
+
+		//}
 
 		$thumb.css({
 			'background-image': "url("+(thumb || url)+")"
 		});
+
 
 		$thumb.data(d);
 		$thumb.attr('href', url);
@@ -205,12 +227,19 @@ Carousel.prototype = {
 			tw = $thumb.width()+1,
 			th = $thumb.height();
 
+		var intr;
 		$thumb.off().removeData(['dragdata', 'dropdata']).click(function(){
 			var o = $(this).offset();
 			
 			if(pix.move) delete pix.move;
 			else{
-				pix.show(this);
+				var $cover = $(this).children('.iframe-cover');
+				if($cover.length){
+					$cover.hide();
+					setTimeout(function(){
+						$cover.show();
+					}, $(this).hasClass('youtube')?1400:500);
+				}
 			}
 
 			$(this).removeData('_pos');
@@ -223,6 +252,31 @@ Carousel.prototype = {
 
 			//dd.limit = $space.children().length * $space.children().outerWidth(true) - w - m;
 			dd.start = this.parentNode.scrollLeft;
+			dd.mv = 0;
+
+			dd.m = 0;
+
+			console.log(dd);
+   			var timestamp = Date.now(),
+   				frame = dd.offsetX;
+			var now, elapsed, delta, v;
+			dd.pulse = 0;
+			intr = setInterval(function(){
+				/*
+				dd.pulse = 0.3*(dd.m - dd.deltaX);
+				dd.m = dd.deltaX;
+				*/
+
+				now = Date.now();
+				elapsed = now - timestamp;
+				timestamp = now;
+				delta = dd.offsetX - frame;
+				frame = dd.offsetX;
+
+				v = 30 * -delta / (1 + elapsed);
+				dd.pulse = 0.8*v + 0.2 * dd.pulse;
+			}, 50);
+			t.stop = 1;
 
 			var $thumb = $(this).clone().insertAfter(this).hide();
 			dd.update();
@@ -301,24 +355,11 @@ Carousel.prototype = {
 				*/
 			}
 			else{
-				var x = dd.start - dd.deltaX;
 				if(Math.abs(dd.deltaX) > t.cfg.slideLimit && dd.deltaX != 0)
 					pix.slide = dd.deltaX;
 
-				this.parentNode.scrollLeft = Math.max(x, 0);
-
-				var w;
-				if(x < 0){
-					w = t.$t.children('span:last-child').prependTo(t.$t).width();
-					dd.start += w;
-					this.parentNode.scrollLeft = w;
-				}
-				else
-				if(x > (t.$t[0].scrollWidth - t.$t.width())){
-					w = t.$t.children('span:first-child').appendTo(t.$t).width();
-					dd.start -= w;
-					this.parentNode.scrollLeft -= w;
-				}
+				t.scroll(dd.mv - dd.deltaX);
+				dd.mv = dd.deltaX;
 
 
 				//console.log(x +'-'+lw+'x'+rw);
@@ -343,6 +384,12 @@ Carousel.prototype = {
 				//$(this).siblings('span[name='+$(this).attr('name')+']').remove();
 			}
 			*/
+
+			clearInterval(intr);
+
+			console.log('smooth: '+ dd.pulse);
+			if(dd.pulse)
+				t.motion(dd.pulse);
 
 			if(dd.down){
 				delete dd.down;
@@ -406,7 +453,7 @@ Carousel.prototype = {
 			//console.log(this);
 			var $thumb = $(this);
 			//$('.drag').insertBefore();
-			console.log(this);
+
 			var ok = !( this == dd.drag || !pix.drag);
 			if(ok){
 				dd.moved = true;
@@ -417,7 +464,7 @@ Carousel.prototype = {
 						h = $(this).height();
 
 					$thumb.insertBefore(this);
-					if($thumb.data('src').indexOf('ggif.co')+1){
+					if(false && $thumb.data('src').indexOf('ggif.co')+1){
 						$thumb.css({width: h, height: h});
 					}
 					else{
@@ -449,6 +496,174 @@ Carousel.prototype = {
 		}).drop(function(ev, dd){
 			//console.log(this);
 		}).drop("end",function(ev, dd){
+		});
+	},
+
+	x: 0,
+	left: 0,
+	scroll: function(delta){
+		if(!delta) return;
+		delta = parseInt(delta);
+		this.x += delta;
+		this.left += delta;
+
+		this.t.scrollLeft = Math.max(this.x, 0);
+
+		var w;
+		if(this.x < 0){
+			w = this.$t.children('span:last-child').prependTo(this.$t).width();
+			this.x += w;
+			this.t.scrollLeft = w;
+		}
+		else
+		if(this.x > (this.$t[0].scrollWidth - this.$t.width())){
+			w = this.$t.children('span:first-child').appendTo(this.$t).width();
+			this.x -= w;
+			this.t.scrollLeft -= w;
+		}
+	},
+
+
+	motion: function(amplitude){
+		var carousel = this;
+		
+		carousel.stop = 0;
+
+		var timeConstant = 325,
+			timestamp = Date.now();
+
+		function step(stamp){
+			if(carousel.stop) return;
+
+        	var elapsed = Date.now() - timestamp;
+        	var delta = amplitude * Math.exp(-elapsed / timeConstant);
+			carousel.scroll(delta);
+
+			if(delta>0.5 || delta<-0.5)
+				window.requestAnimationFrame(step);
+		}
+
+		window.requestAnimationFrame(step);
+	},
+
+	stop: 0,
+	smooth: function(speed){
+		var carousel = this;
+		/*
+			start = carousel.left,
+			end = carousel.left + scroll;
+		*/
+
+		carousel.stop = 0;
+		var breaks = 1.8;
+		var intr = setInterval(function(){
+			if(speed > 1)
+				speed -= breaks;
+			else 
+			if(speed < -1)
+				speed += breaks;
+
+			if(carousel.stop)
+				speed = 0;
+		}, 200);
+
+		var st;
+		function step(timestamp){
+			var dif = timestamp - st;
+
+			carousel.scroll(speed*30/dif);
+
+			if(speed>1 || speed<-1)
+				window.requestAnimationFrame(step);
+			else clearInterval(intr);
+
+			st = timestamp;
+
+			return;
+			if(carousel.left.between(start, end)){
+				window.requestAnimationFrame(step);
+			}
+
+		}
+
+		window.requestAnimationFrame(step);
+	},
+
+	smootha: function(target, duration){
+		var carousel = this;
+	    target = Math.round(carousel.left+target);
+	    duration = Math.round(duration);
+	    if (duration < 0) {
+	        return Promise.reject("bad duration");
+	    }
+	    if (duration === 0) {
+	        carousel.left = target;
+	        return Promise.resolve();
+	    }
+
+	    var start_time = Date.now();
+	    var end_time = start_time + duration;
+
+	    // var start_top = element.scrollTop;
+	    var start_top = carousel.left;
+	    var distance = target - start_top;
+
+	    // based on http://en.wikipedia.org/wiki/Smoothstep
+	    var smooth_step = function(start, end, point) {
+	        if(point <= start) { return 0; }
+	        if(point >= end) { return 1; }
+	        var x = (point - start) / (end - start); // interpolation
+	        return x*x*(3 - 2*x);
+	    }
+
+	    return new Promise(function(resolve, reject) {
+	        // This is to keep track of where the element's scrollTop is
+	        // supposed to be, based on what we're doing
+	        var previous_top = carousel.left;
+
+	        // This is like a think function from a game loop
+	        var scroll_frame = function() {
+	            if(carousel.left != previous_top) {
+	                reject("interrupted");
+	                return;
+	            }
+
+	            // set the scrollTop for this frame
+	            var now = Date.now();
+	            var point = smooth_step(start_time, end_time, now);
+	            var frameTop = Math.round(start_top + (distance * point));
+	            //element.scrollTop = frameTop;
+	            console.log(distance*point);
+	            carousel.scroll(1);
+
+	            // check if we're done!
+	            if(now >= end_time) {
+	                resolve();
+	                return;
+	            }
+
+	            // If we were supposed to scroll but didn't, then we
+	            // probably hit the limit, so consider it done; not
+	            // interrupted.
+	            if(carousel.left === previous_top
+	                && carousel.left !== frameTop) {
+	                resolve();
+	                return;
+	            }
+	            previous_top = carousel.left;
+
+	            // schedule next frame for execution
+	            setTimeout(scroll_frame, 0);
+	        }
+
+	        // boostrap the animation process
+	        setTimeout(scroll_frame, 0);
+	    });
+	},
+
+	onScroll: function(){
+		this.$t.scroll(function(){
+			console.log();
 		});
 	},
 

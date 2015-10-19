@@ -7,6 +7,20 @@ var pix = window.pix = {
 
 	carousels: [],
 
+	gImages: 'https://www.googleapis.com/customsearch/v1?key=AIzaSyDE7m50ILI18LCswZZ93W5KyFgtnASmkhg&&cx=005276605350744041336:wifcwjx3hiw&searchType=image&q=',
+	searchGoogle: function(q, cb){
+		$.getJSON(pix.gImages+q, function(r){
+			var images  = [];
+			if(r && r.items)
+				r.items.forEach(function(item){
+					if(item.link)
+						images.push(item.link);
+				});
+
+			if(images.length)
+				cb(images);
+		})
+	},
 
 	cleanTargets: function(){
 		var targets = $.event.special.drop.targets;
