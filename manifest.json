@@ -1,0 +1,46 @@
+{
+  "name" : "pix8",
+  "version" : "1.0.1",
+  "description" : "Tag pictures into carousel",
+  "background" : {
+    "scripts": [
+      "cfg.js",
+      "lib/underscore.js",
+      "lib/functions.js",
+      "ws.js",
+      "background.js"
+    ]
+  },
+  "browser_action": {
+    "default_icon": "menu38.png"
+  },
+
+  "commands": {
+    "toggle" : {
+        "suggested_key": {
+             "default": "Alt+C" 
+        },
+        "description": "Show/hide carousel"
+    }
+  },
+
+  "permissions" : [
+    "https://docs.google.com/feeds/*",
+    "https://www.google.com/accounts/OAuthGetRequestToken",
+    "https://www.google.com/accounts/OAuthAuthorizeToken",
+    "https://www.google.com/accounts/OAuthGetAccessToken",
+    "identity",
+    "identity.email",
+    "contextMenus",
+    "tabs",
+    "storage",
+    "activeTab",
+    "http://*/*",
+    "https://*/*"
+   ],
+  "minimum_chrome_version" : "6.0.0.0",
+  "icons" : {
+    "48" : "logo48.png"
+  },
+  "manifest_version": 2
+}
