@@ -4,6 +4,8 @@ var pix8int = {
 
 };
 
+Pix.extension = true;
+
 document.addEventListener('beforeload', function(e){
 	console.log(e);
   console.log('Script executed: ', e.target);
@@ -14,7 +16,7 @@ $(function(){
 
 	var ws = window.ws = new WS({
 		server: Cfg.server,
-		sid: Cookies.get('sid'),
+		sid: Cookies.get(Cfg.sidCookie),
 		name: 'main',
 		autoReconnect: true
 	});
@@ -23,8 +25,8 @@ $(function(){
 	S.session = function(m){
 		Pix.checkJquery();
 
-		Cookies.set('sid', m.sid);
-		if(m.user) acc.ok(m.user);
+		Cookies.set(Cfg.sidCookie, m.sid);
+		//if(m.user) acc.ok(m.user);
 
 		var $pic = Pix.$pic = $("<div>", {id: 'pic', class: 'bar'}).prependTo('body');
 		$pic.css('position', 'fixed');
@@ -66,7 +68,7 @@ $(function(){
 				preloadLocal: false
 			});
 
-			carousel.$t.appendTo($pic);
+			carousel.$t.appendTo('#pic');
 
 			//Site.resizeNext($pic.next(), -carousel.$t.height());
 
@@ -95,8 +97,48 @@ $(function(){
 
 		var $tag = Pix.$tag = $("<input id='pic-tag'/>").appendTo($resize);
 		$tag.bindEnter(function(){
-			if(this.value)
-				newCarousel(this.value);
+			var tag = this.value;
+			if(tag){
+				if(tag[0] == '#'){
+					var tags = tag.substr(1).split(','),
+							mainItem = $('#pic > .carousel').last().children('span').eq(0).data();
+
+					if(!mainItem) return;
+
+					Pix.send({
+						cmd: 'load',
+						filter: {
+							path: {$in: tags},
+							owner: User.name,
+							type: 'view'
+					//	type: "public"
+						},
+						collection: Cfg.collection
+					}, function(r){
+						console.log(r);
+						(r.items || []).forEach(function(item){
+							item.items.unshift(mainItem.id);
+							Pix.send({
+								cmd: 'update',
+								set: {
+									items: item.items
+								},
+								id: item.id,
+								collection: Cfg.collection
+							}, function(r){
+
+							});
+						});
+
+						$('#pic-resize').blink('green');
+					});
+				}
+				else
+				if(tag[0] == '+')
+					$('#pic > .carousel').first()[0].carousel.prependView(tag.substr(1));
+				else
+					newCarousel(tag);
+			}
 			this.value = '';
 		}).click(function(){
 			$tag.focus();
@@ -157,7 +199,6 @@ $(function(){
 
 		var $trash = Pix.$trash = $("<div id='pic-trash'>&#10006;</div>").appendTo($pic);
 		$trash.drop("start", function(ev, dd){
-			console.log(dd);
 			$(dd.proxy).css('opacity', 0.5);
 			return true;
 		}).drop("end", function(ev, dd){
@@ -208,6 +249,20 @@ $(function(){
 			}
 		});
 
-		GG.init();
+		if(window.GG)
+			GG.init();
+
+		$('<link>').attr({
+		    type: 'text/css',
+		    rel: 'stylesheet',
+		    href: Pix8list.home+'pix8/pix8list.css'
+		}).appendTo('head');
+
+
+		Pix8list.init();
+
+		Pix.ready.forEach(function(fn){
+			fn(m);
+		});
 	};
 });

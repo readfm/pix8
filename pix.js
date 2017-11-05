@@ -4,6 +4,8 @@ var pix = Pix = {
 	drag: false,
 	def: 'pix8',
 
+	ready: [],
+
 	tid: 449,
 
 	api: '2.pix8.co:25286/',
@@ -38,7 +40,7 @@ var pix = Pix = {
 	$items: {},
 
 	// items already loaded from database
-	items: {},
+	items: window.Data?Data.items:{},
 
 	// builds required element for carousel
 	build: function(d){
@@ -50,7 +52,6 @@ var pix = Pix = {
 
 		var file = d.file;
 		if(!file && d.src){
-			console.log(d.src.indexOf(Cfg.files));
 			if(d.src.indexOf(Cfg.files) === 0)
 				file = d.src.substr(Cfg.files.length);
 		}
@@ -60,6 +61,8 @@ var pix = Pix = {
 			$thumb = $(document.createElement('span'));
 
 		$thumb.data(d);
+		console.log(d);
+		$thumb.attr('title', d.id);
 
 		if(d.src){
 			var video = pix.parseVideoURL(d.src),
@@ -162,8 +165,27 @@ var pix = Pix = {
 		return $thumb;
 	},
 
+	carousel: function(tag){
+		var carousel = new Carousel({
+			name: 'site images',
+			onAdd: function(url, $thumb){
+				carousel.include(url, $thumb);
+			},
+			preloadLocal: false,
+			preloadGoogle: false
+		});
+
+		carousel.$t.appendTo(Pix.$pic);
+		carousel.onTag(tag);
+	},
+
+	onTag: function(){
+
+	},
+
 	build: item => {
-		return Builder.item(item);
+		var elem = new Elem(item);
+		return elem.$item;
 	},
 
 	loadFile: function(fid, $thumb){
@@ -274,6 +296,34 @@ var pix = Pix = {
 			if(images.length)
 				cb(images);
 		})
+	},
+
+	// get items loaded froom given list of ids.
+	preload: function(ids){
+		var newIds = [];
+		ids.forEach(function(id){
+			if(!Pix.items[id])
+				newIds.push(id);
+		});
+
+		return new Promise(function(resolve, reject){
+			if(newIds.length)
+				Pix.send({
+					cmd: 'load',
+					filter: {
+						id: {$in: newIds},
+					},
+					collection: Cfg.collection
+				}, function(r){
+					(r.items || []).forEach(function(item){
+						Pix.items[item.id] = item;
+					});
+
+					resolve();
+				});
+			else
+				resolve();
+		});
 	},
 
 	// to fix dubmedia drag&drop bug
@@ -569,8 +619,6 @@ var pix = Pix = {
 				url = urlA.join('/');
 			}
 
-			console.log(url);
-
 			return url;
 		},
 
@@ -602,8 +650,49 @@ $(function(){
 
 
 	$(document).bind("keydown", function(ev){
+		var delAfter = 0;
+
+		if($('input:focus').length) return;
+		if(ev.keyCode == 97 || ev.keyCode == 49){
+			$('#mainCarousel').css('height', '10vh').siblings('.carousel').remove();
+			$('#mainCarousel')[0].carousel.resize();
+			if(window.Site) Site.resize();
+			else Pix.leaveGap($('#pic').height());
+		}
+		else
+		if(ev.keyCode == 98 || ev.keyCode == 50){
+			$('#mainCarousel').css('height', '25vh').siblings('.carousel').remove();
+			$('#mainCarousel')[0].carousel.resize();
+			if(window.Site) Site.resize();
+			else Pix.leaveGap($('#pic').height());
+		}
+		else
+		if(ev.keyCode == 99 || ev.keyCode == 51){
+			$('#mainCarousel').css('height', '60vh').siblings('.carousel').remove();
+			$('#mainCarousel')[0].carousel.resize();
+			if(window.Site) Site.resize();
+			else Pix.leaveGap($('#pic').height());
+		}
+		else
+		if(ev.keyCode == 100 || ev.keyCode == 52)
+			delAfter = 4;
+		else
+		if(ev.keyCode == 101 || ev.keyCode == 53)
+			delAfter = 5;
+		else
+		if(ev.keyCode == 102 || ev.keyCode == 54)
+			delAfter = 6;
+		else
 		if(ev.keyCode == 27){
 			Pix.stopGgifs();
+		}
+
+		if(delAfter && !$('*:focus').length){
+			$('#pic > .carousel').slice(delAfter).remove();
+			if(typeof Site == 'object')
+				Site.resize()
+			else
+				Pix.leaveGap($('#pic').height());
 		}
 	});
 });
@@ -615,3 +704,35 @@ $(document).on('mouseleave', '.ggif,.youtube', function(ev){
 	//if(carousel.stop)
 		$(this).children('.iframe-cover').show();
 });
+
+$(document).bind("paste", ev => {
+	if($('*:focus').length) return;
+
+	var paste = ev.originalEvent.clipboardData.getData('Text') ||
+		ev.originalEvent.clipboardData.getData('URL');
+
+  var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+
+	var $activeCarousel = $('#pic > .carousel.focus');
+	if(!$activeCarousel.length) return;
+
+	var carousel = $activeCarousel[0].carousel;
+
+	var $focus = $activeCarousel.children('.focus');
+	if(!$focus.length) return;
+
+	if(!paste && items && items.length)
+		return carousel.upload(ev, $focus);
+
+	console.log('Paste: ' + paste);
+	// do not continue if it's not url
+	if(paste.indexOf('http')) return;
+
+	carousel.include(paste, $focus);
+
+  ev.preventDefault();
+});
+
+document.onpaste = function(event){
+	console.log(event);
+}

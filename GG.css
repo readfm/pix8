@@ -1,0 +1,301 @@
+#gg-game{
+  position: absolute;
+  height: 100% !important;
+  z-index: 9999999999;
+  width: 100%;
+  font-family: courier;
+}
+
+#gg-canvas, #gg-canvas > canvas{
+  width: 100%;
+  height: 100%;
+}
+
+#gg-modal{
+  position: fixed;
+  z-index: 9995;
+  display: none;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+
+.modal{
+	display: none;
+	position: fixed;
+	z-index: 9998;
+	width: 500px;
+	height: 330px;
+	margin: auto;
+	left:0; right:0;
+	top:0; bottom:0;
+	padding: 0;
+	border-radius: 4px;
+	text-align: left;
+	font-size: 15px;
+	color: #969696;
+	background-color: #EEE;
+  border-radius: 2px;
+  border: 2px solid black;
+}
+
+#gg-text{
+  display: none;
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 40px;
+  min-height: 50px;
+  text-align: center;
+  color: white;
+  transition: background 1s;
+  font-family: monospace;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.9);
+  /* font-family: courier new; */
+  position: absolute;
+  top: 0;
+}
+
+
+#gg-text > i{
+    font-style: normal;
+    /* transition: background-color 0.3s, color 0.3s; */
+}
+
+#gg-text > i:not(.skip){
+    background: rgba(238, 238, 238, 0.13);
+    margin-left: 2px;
+    padding: 0 1px;
+    border-radius: 3px;
+}
+
+#gg-text > i:not(.skip):hover{
+    background: rgba(177, 177, 177, 0.5);
+}
+
+#gg-text > i.mark{
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#gg-text.impose > .mark{
+    background-color: white;
+}
+
+#gg-text:not(.auto) > .tap{
+    background-color: white !important;
+    color: black;
+    border-radius: 4px;
+}
+
+#gg-text.auto > .tap{
+	text-transform: uppercase;
+}
+
+#gg-text > .loop{
+    background: rgba(255, 152, 0, 0.5) !important;
+}
+
+#gg-text > .tap-ghost{
+    background: rgb(239, 239, 239) linear-gradient(rgba(40, 109, 236, 0), rgb(197, 197, 197));
+}
+
+
+
+
+
+
+#players{
+	display: none;
+	overflow: auto;
+}
+
+.player{
+	display: inline-block;
+	position: relative;
+	width: 96px;
+	height: 96px;
+	margin: 5px;
+	background-color: #808080;
+	border-radius: 5px;
+}
+
+
+.player-thumb{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    float: left;
+    /* background: url('user.png'); */
+    background-size: cover;
+    border-radius: 71px;
+}
+
+.player-name{
+    position: absolute;
+    display: inline-block;
+    margin: 2px 0;
+    color: white;
+    bottom: 5px;
+    font-size: 11px;
+    text-align: center;
+    left: 0;
+    right: 0;
+}
+
+.player-score{
+    position: absolute;
+    color: white;
+    top: 5px;
+    font-size: 16px;
+    text-align: center;
+    left: 0;
+    right: 0;
+}
+
+.player-time{
+    position: absolute;
+    color: white;
+    top: 30px;
+    font-size: 10px;
+    text-align: center;
+    left: 0;
+    right: 0;
+}
+
+
+
+
+#ggame-score{
+    z-index: 40;
+    bottom: 0;
+    margin: 0 auto;
+    left: 0;
+    padding: 4px 8px;
+    font-size: 16px;
+    background: rgba(183, 183, 183, 0.8);
+    transition: background 1s;
+}
+
+
+
+#gg-score{
+	display: block;
+	background: rgba(255, 255, 255, 0.82);
+	bottom: 0;
+	width: 100%;
+	height: 30%;
+	position: absolute;
+	overflow: auto;
+	color: black;
+}
+
+#gg-close{
+	position: absolute;
+	right: 0;
+	bottom: 30%;
+	width: 50px;
+	height: 50px;
+	background-color: rgba(255, 255, 255, 0.65);
+	color: white;
+	cursor: pointer;
+	border-radius: 2px;
+	font-size: 48px;
+	text-align: center;
+	font-weight: bold;
+}
+
+#gg-scores-list{
+	display: block;
+	width: 100%;
+	overflow: auto;
+	margin: 0;
+	height: 100%;
+	/* background-color: rgba(128, 128, 128, 0.5); */
+}
+
+.score:hover{
+    background: rgb(255, 255, 255);
+}
+
+.score{
+    position: relative;
+    width: 100%;
+    height: 40px;
+    display: none;
+    transition: background-color 0.6s;
+    background-color: rgba(255, 255, 255, 0.61);
+    margin-bottom: 2px;
+}
+
+.score-thumb{
+    width: 32px;
+    height: 32px;
+    margin: 3px 8px;
+    float: left;
+    background: #DDD url('user.png');
+    background-size: cover;
+    border-radius: 36px;
+}
+
+.score-userName{
+    /* border-bottom: 1px dashed #9C9C9C; */
+    display: inline-block;
+    margin: 7px;
+    font-size: 24px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.9);
+}
+
+.score-duration{
+    display: none;
+    position: absolute;
+    top: 4px;
+    border-bottom: 1px dashed #9C9C9C;
+    right: 12px;
+}
+
+.score-timings{
+    display: none;
+    font-size: 12px;
+    color: black;
+}
+
+.score-stars{
+    display: inline-block;
+    position: absolute;
+    top: -10px;
+    right: 5px;
+    font-size: 41px;
+}
+
+.score-time{
+
+display: inline-block;
+
+position: absolute;
+
+top: 22px;
+
+right: 12px;
+
+font-size: 12px;
+}
+
+#ggame-score, .score-num{
+    /* position: absolute; */
+    color: white;
+    text-shadow: 1px 2px 1px black;
+    float: left;
+    height: 100%;
+    padding: 9px;
+    width: 50px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: bold;
+}

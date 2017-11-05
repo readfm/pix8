@@ -66,8 +66,13 @@ Site.ready.push(function(){
 
 	var $tag = Pix.$tag = $("<input id='pic-tag'/>").appendTo($resize);
 	$tag.bindEnter(function(){
-		if(this.value)
-			newCarousel(this.value);
+		var tag = this.value;
+		if(tag){
+			if(tag[0] == '+')
+				$('#pic > .carousel').first()[0].carousel.prependView(tag.substr(1));
+			else
+				newCarousel(tag);
+		}
 		this.value = '';
 	}).click(function(){
 		$tag.focus();
@@ -181,6 +186,18 @@ Site.ready.push(function(){
 
 	GG.init();
 
+	$('<link>').attr({
+	    type: 'text/css',
+	    rel: 'stylesheet',
+	    href: Pix8list.home+'pix8/pix8list.css'
+	}).appendTo('head');
+
+	Pix8list.init();
+
+	Pix.ready.forEach(function(fn){
+		fn(Site.session);
+	});
+
 	//$.getScript('/pix8/pix8list.js');
 
 	/*
@@ -188,7 +205,10 @@ Site.ready.push(function(){
 	    src: '/pix8/pix8list.js'
 	}).appendTo('head');
 	*/
+
+	//Pay.init();
 });
+
 
 /*
 chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){

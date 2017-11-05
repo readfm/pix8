@@ -39,7 +39,7 @@
 	top: 0;
 	left: 0;
 	right: 0;
-	z-index: 9999999999999999;
+	z-index: 70;
 	/* height: 100px; */
 	/* height: calc(70% - 50px); */
 	min-height: 30px;
@@ -225,8 +225,12 @@
 	transition: opacity 0.5s;
 }
 
+.uploading{
+    animation: opacity 0.3s ease infinite;
+}
+
 .carousel > *.focus{
-    border: 2px dashed #5599FF;
+    outline: 1px dashed #4b53b1;
 }
 
 .thumb > img{/* min-height: 100%; */}
@@ -314,4 +318,8 @@
 	margin: 1px;
 	background-color: rgb(129, 144, 213);
 	cursor: n-resize;
+}
+
+.green{
+	background-color: rgba(0, 138, 0, 0.8) !important;
 }
