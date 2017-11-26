@@ -1,4 +1,47 @@
-pix8 Modules:
+#pix
+
+## Abaut
+Pix8 is a tool that can:
+* Associate pictures to certain words
+* Drag pictures between tiers and from websites
+* Make websites more visual
+* ...
+
+## Getting started
+Load pix8.js file into your website
+..
+
+## Configuration
+Configuration options are available in config.js
+{
+  server: 'api.domain.com' the address of WEB sockets API
+  files: 'http://files.domain.com/'  address from which to access uploaded files
+}
+
+## Demo
+pix8 integrated with wikipedia - http://th.ai/brain
+
+## TODO
+* To make personal views sharable
+* FB auth
+
+## Known bugs
+pix8 bug, first pic dragged up from lower tier to empty top tier removes pic from lower tier, copy should stay in lower tier (‘first’ meaning first-time not #1position)
+
+## Details
+
+## Features
+* Drag/Drop local files
+* IPFS integration
+* Autherntification by social networks
+
+## Motivation
+New feature is coming
+
+### Changelog
+
+#### Files system
+### Modules:
 carousel.js - prototype for creating carousel objects, that later can be inserted anywhere, (by default goes with pix object)
 carousel.css - styles and arrangment to make carousels work correctly with js module
 
