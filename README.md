@@ -1,3 +1,24 @@
+Pix8 better pictures faster:
+
+Pictures are good. How make better?
+
+* TAG find pix fast like spoken words 
+* SORT good pix up, ok pix down
+* WEB put any pix you like w/ any page you like tiny.cc/pix8
+* WIKI sync words in wiki with pix http://th.ai
+* SOUND, put audio in, switch audio, sort audios for any pic ggif.co kinda
+* MEMORY own, sign, date, transact
+* SOCIAL see who sees what how
+* SUPERDISTRIBUTION see Brad Cox
+
+Duke writes specs wants social code
+Wafaa translating specs to programmers
+Mantas wrote code below may write more
+David might take over but he's Mr. Poo Poo so maybe not
+You're invited to hack better pix faster
+
+==
+
 pix8 Modules:
 carousel.js - prototype for creating carousel objects, that later can be inserted anywhere, (by default goes with pix object)
 carousel.css - styles and arrangment to make carousels work correctly with js module
