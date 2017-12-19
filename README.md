@@ -14,7 +14,7 @@ Pictures are good. How make better?
 Duke writes specs wants social code
 Wafaa translating specs to programmers
 Mantas wrote code below may write more
-David might take over but he's Mr. Poo Poo so maybe not
+David might take over or someone
 You're invited to hack better pix faster
 
 ==
