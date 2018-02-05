@@ -1,4 +1,4 @@
-var Carousel = function(opt){
+ var Carousel = function(opt){
 	this.cfg = $.extend(this.cfg, {
 		allowPatterns: false,
 		down2remove: 0.5,
@@ -20,10 +20,6 @@ var Carousel = function(opt){
 	this.$tag = $('<input>', {class: 'carousel-tag'}).appendTo($carousel);
 	this.$tag.bindEnter(function(ev){
 		carousel.onTag(this.value);
-	});
-
-	$carousel.click(ev => {
-		$carousel.addClass('focus').siblings().removeClass('focus');
 	});
 
 	this.t = this.$t[0];
@@ -67,27 +63,23 @@ Carousel.prototype = {
 		this.$tag.val(!tg[0]?(upTag+tag):tag);
 		tg = tag.split('@');
 
-		var u = document.location.href.split('@')[1];
-
-		console.log('U: ', u);
-
-		if(typeof u == 'string'){
+		if(tg.length>1){
 			var tgName = tg[0];
 
-			this.owner = u;
-			if(!u.length)
+			if(!tg[1])
+				this.loadViews(tgName);
+			else
+			if(tg[1] == '8')
 				this.loadPublic(tgName);
 			else
 				this.loadView(tgName);
 		}
-		else{
-			this.owner = null;
+		else
 			this.loadView(tag);
-		}
 	},
 
 	//will create an element with all events and puts it into its place
-	add: function(url, $before){
+	add: function(url){
 		if(!url) return;
 		$(this.$t).children('.clone').remove();
 
@@ -97,7 +89,7 @@ Carousel.prototype = {
 			url = qs.imgurl;
 
 		var $thumb = this.createThumb(url);
-		$thumb[$before?'insertBefore':'appendTo']($before || this.$t).data({src: url});
+		$thumb.appendTo(this.$t).data({src: url});
 
 		this.supportEvents($thumb);
 		return $thumb;
@@ -120,6 +112,7 @@ Carousel.prototype = {
 			path: carousel.getPath(),
 			//tag: carousel.$tag.val(),
 			href: document.location.href,
+			link: document.location.href,
 			gid: User.id,
 			type: 'image'
 		};
@@ -193,6 +186,7 @@ Carousel.prototype = {
 
 				item.type = 'link';
 				item.link = url;
+
 
 				Pix.send({
 					cmd: 'website',
@@ -289,6 +283,11 @@ Carousel.prototype = {
 
 		var name = url.split(/(\\|\/)/g).pop();
 
+		console.log(this.files);
+		if(this.files.indexOf(name)+1){
+			var src = 'http://127.0.0.1:9001/'+name;
+		}
+
 
 		var img = new Image;
 		var $thumb = $(img).attr({
@@ -306,7 +305,7 @@ Carousel.prototype = {
 		return $thumb;
 	},
 
-	// makes it possible to drag and drop on selected item
+	// makes  it possible to drag and drop on selected item
 	supportEvents: function($thumb){
 		if(!$thumb || !$thumb.length) return;
 
@@ -321,12 +320,13 @@ Carousel.prototype = {
 
 			var item = $thumb.data();
 
-			$thumb.addClass('focus').siblings().removeClass('focus');
-			$('*:focus').blur();
-
 			if(pix.move) delete pix.move;
 			else
 			if(item.type == 'view'){
+				if(item.image && item.path){
+					window.open(item.path, "_blank");
+				}
+				else
 				if(item.path && item.owner)
 					t.onTag(item.path+'@'+item.owner);
 			}
@@ -363,7 +363,7 @@ Carousel.prototype = {
 
 		$thumb.drag("init", function(ev, dd){
 			console.log(dd);
-		}, {click:true}).drag("start", function(ev, dd){
+		}).drag("start", function(ev, dd){
 			var o = $(this).offset();
 			$(this).data('_pos', o.left+'x'+o.top);
 			dd.startParent = this.parentNode;
@@ -535,7 +535,9 @@ Carousel.prototype = {
 				$thumb.replaceWith($newThumb);
 				$thumb.data(thumb);
 
-				var $before = t.$t.children('.thumb').eq(dd.index-1);
+        var i = dd.index - 1;
+				var $before = t.$t.children('.thumb').eq(i < 0?0:i);
+        console.log($);
 				if($before.length)
 					$thumb.insertBefore($before);
 				else
@@ -773,9 +775,6 @@ Carousel.prototype = {
 		if(path.indexOf(search)+1)
 			path = path.substr(path.indexOf(search)+search.length+1).split('/')[0];
 
-		var search = 'th.ai';
-		if(path.indexOf(search)+1)
-			path = path.substr(path.indexOf(search)+search.length+1).split('/')[0];
 
 		var search = 'preload.lh';
 		if(path.indexOf(search)+1)
@@ -793,12 +792,14 @@ Carousel.prototype = {
 			path = path.split('@')[0];
 		}
 
+		console.log(path);
+
 		return path;
 	},
 
 	// what goes after @ in tag
 	getOwner: function(){
-		if(this.owner) return this.owner;
+		//if(this.owner) return this.owner;
 
 		var path = (
 			((this.$tag && !this.$tag.attr('disabled'))?this.$tag.val():'') ||
@@ -826,7 +827,7 @@ Carousel.prototype = {
 
 		view.path = carousel.getPath();
 
-		if(view.path.indexOf('http') == 0)
+		if(view.path.indexOf('http') == 0 || view.path.indexOf('https') == 0)
 			view.title = carousel.getTitle();
 
 		view.gid = User.id;
@@ -834,18 +835,31 @@ Carousel.prototype = {
 
 		if(!view.items || !view.items.length) return;
 
-		Pix.send({
-			cmd: 'save',
-			item: view,
-			collection: Cfg.collection
-		}, function(r){
-			console.log(r);
-			if(r.item){
-				carousel.view = r.item;
+		console.log(view);
 
-				carousel.updatePublic();
-			}
-		});
+		var save = function(){
+			Pix.send({
+				cmd: 'save',
+				item: view,
+				collection: Cfg.collection
+			}, function(r){
+				console.log(r);
+				if(r.item){
+					carousel.view = r.item;
+
+					if(view.title){
+						chrome.runtime.sendMessage({
+							cmd: 'shot',
+							skip: $('#pic').height()
+						});
+					}
+
+					carousel.updatePublic();
+				}
+			});
+		}
+
+		save();
 
 		return view;
 	},
@@ -925,7 +939,7 @@ Carousel.prototype = {
 			path: this.getPath(),
 			owner: this.getOwner(),
 			type: 'view'
-		}
+		};
 
 		var carousel = this;
 		delete carousel.view;
@@ -1017,10 +1031,11 @@ Carousel.prototype = {
 	prependView: function(path){
 		var carousel = this;
 		this.fetchView(path).then(view => {
+			console.log(view);
 			if(!view || !view.items || !view.items.length) return;
 
 			Pix.preload(view.items).then(function(){
-				view.items.slice(0, carousel.cfg.fetchLimit).forEach(function(id){
+				view.items.reverse().slice(0, carousel.cfg.fetchLimit).forEach(function(id){
 					var item = Pix.items[id],
 							$item = Pix.build(item);
 
@@ -1243,9 +1258,11 @@ Carousel.prototype = {
 	push: function(id){
 		var $item;
 
-		var item = pix.items[id];
+		console.log(id);
+		var item = Pix.items[id];
 		if(!item) return;
 
+		console.log(item);
 		$item = pix.build(item);
 
 		this.$t.append($item);
@@ -1392,43 +1409,14 @@ Carousel.prototype = {
 		return false;
 	},
 
-	/*
-	var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-  console.log(JSON.stringify(items)); // will give you the mime types
-  for (index in items) {
-    var item = items[index];
-    if (item.kind === 'file') {
-      var blob = item.getAsFile();
-      var reader = new FileReader();
-      reader.onload = function(event){
-        console.log(event.target.result)}; // data url!
-      reader.readAsDataURL(blob);
-    }
-  }
-	*/
 
-	upload: function(ev, $before){
-		console.log(ev);
-
-		var files;
-		if(ev.type == 'drop')
-			files = ev.dataTransfer.files; // FileList object
-		else
-		if(ev.type == 'paste')
-			files = (ev.clipboardData || ev.originalEvent.clipboardData).items;
+	upload: function(ev){
+		var files = ev.dataTransfer.files; // FileList object
 
 		var carousel = this;
 	  // Loop through the FileList and render image files as thumbnails.
 		for (var i = 0, f; f = files[i]; i++){
 			// Only process image files.
-			console.log(f);
-
-
-			if (f.kind === 'file'){
-				f = f.getAsFile();
-				console.log(f);
-			}
-
 			if(!f.type.match('image.*'))
 				continue;
 
@@ -1445,9 +1433,6 @@ Carousel.prototype = {
 				var $item = Pix.build(item);
 				$item.addClass('uploading');
 
-				if($before)
-					$item.insertBefore($before);
-				else
 				if(ev.target.src)
 					$item.insertBefore(ev.target.parentNode);
 				else
@@ -1501,63 +1486,6 @@ Carousel.prototype = {
 
 		ev.preventDefault();
 		return false;
-	},
-
-	paste: function(dataURL, $before){
-		var item = {
-			src: dataURL,
-			type: 'image'
-		};
-
-		var $item = Pix.build(item);
-		$item.addClass('uploading');
-
-		if($before)
-			$item.insertBefore($before);
-		else
-			carousel.$t.append($item);
-
-		carousel.resize($item);
-
-		var reader = new FileReader();
-		reader.onload = function(ev2){
-			ws.upload(ev2.target.result, function(file){
-				if(!file) return $item.remove();
-
-				var img = $item.children('img')[0];
-
-				var item = {
-					src: Cfg.files+file.id,
-					file: file.id,
-					width: img.naturalWidth,
-					height: img.naturalHeight,
-					path: carousel.getPath(),
-					//tag: carousel.$tag.val(),
-					href: document.location.href,
-					gid: User.id,
-					type: 'image'
-				};
-
-				ws.send({
-					cmd: 'save',
-					item: item,
-					collection: Cfg.collection
-				}, function(r){
-					if(r.item){
-						Pix.items[r.item.id] = r.item;
-						$item.removeClass('uploading');
-						$item.data(r.item);
-						$item.attr({
-							id: 'image-'+r.item.id
-						});
-
-						carousel.resize($item);
-						carousel.supportEvents($item);
-						carousel.updateView();
-					}
-				});
-			});
-		}
 	},
 
 	// when slide its should have some momentum

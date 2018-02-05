@@ -1,10 +1,18 @@
 var Cfg = {
-	//server: 'io.cx/',
+	//server: 'io.lh/',
 	//server: '127.0.0.1:80/',
+
 	server: 'io.cx/',
 	//server: '10.0.0.29/',
-	files: 'http://files.mp3gif.com/',
+	files: '//f.io.cx/',
 	thumber: 'http://thumb.pix8.co/',
+
+	/*
+	server: '127.0.0.1:4000',
+	files: 'http://files.lh/',
+	thumber: 'http://thumb.lh/',
+	*/
+
 	local: true,
 	collection: 'pix8',
 	fixed: true,
@@ -14,6 +22,10 @@ var Cfg = {
 		dy: 15,
 		dx: 10
 	},
+
+
+	home: 'http://io.cx/',
+	preload: 'http://pix8.co/',
 
 	collector: {
 		minWidth: 60,

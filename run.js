@@ -2,7 +2,7 @@ window.carousel;
 
 //$(function(){
 Site.ready.push(function(){
-	var $pic = Pix.$pic = $("<div>", {id: 'pic', class: 'bar'}).insertBefore('#view');
+	var $pic = Pix.$pic = $("<div>", {id: 'pic', class: 'bar'}).prependTo('body');
 
 	var $resize = $("<div id='pic-resize'></div>");
 	$resize.appendTo($pic).dblclick(function(){
@@ -43,9 +43,9 @@ Site.ready.push(function(){
 
 		carousel.$t.appendTo($pic);
 
-		Site.resizeNext($pic.next(), -carousel.$t.height());
-
 		carousel.onTag(tag);
+
+		Site.resize();
 
 		return carousel;
 	}
@@ -110,11 +110,11 @@ Site.ready.push(function(){
 		if(!$carousel.height())
 			carousel.$t.remove();
 
-		Site.resizeNext(Pix.$pic.next(), -dif);
-
 		var newL = (dd.left + dd.clientX) * carousel.$t.height() / dd.carouselHeight,
 			dif = newL - dd.left - dd.clientX;
 		carousel.t.scrollLeft = dd.left + dif;
+
+		Site.resize();
 	}).drag("end", function(ev, dd){
 		Pix.$cover.hide();
 		var height = $('#pic').height();
@@ -184,8 +184,6 @@ Site.ready.push(function(){
 		}
 	});
 
-	GG.init();
-
 	$('<link>').attr({
 	    type: 'text/css',
 	    rel: 'stylesheet',
@@ -207,6 +205,8 @@ Site.ready.push(function(){
 	*/
 
 	//Pay.init();
+
+	console.log('ready');
 });
 
 
