@@ -1,5 +1,11 @@
- var Carousel = function(opt){
+var Carousel = function(opt){
+	var carousel = this;
+
 	this.cfg = $.extend(this.cfg, {
+		name: 'images',
+		onAdd: function(url, $thumb){
+			carousel.include(url, $thumb);
+		},
 		allowPatterns: false,
 		down2remove: 0.5,
 		takeOffLimit: 5,
@@ -8,18 +14,21 @@
 		preloadLocal: true,
 		preloadGoogle: true,
 		fetchLimit: 8,
-	}, opt);
+	}, Cfg.carousel, opt);
 
 	var name = this.cfg.name;
 	var $carousel = this.$t = $("<div>", {class: 'carousel bar'});
 	this.$t.attr('name', name);
 	this.name = name;
 
-	var carousel = this;
 
 	this.$tag = $('<input>', {class: 'carousel-tag'}).appendTo($carousel);
 	this.$tag.bindEnter(function(ev){
 		carousel.onTag(this.value);
+	});
+
+	$carousel.click(ev => {
+		$carousel.addClass('focus').siblings().removeClass('focus');
 	});
 
 	this.t = this.$t[0];
@@ -63,23 +72,36 @@ Carousel.prototype = {
 		this.$tag.val(!tg[0]?(upTag+tag):tag);
 		tg = tag.split('@');
 
-		if(tg.length>1){
+		var u = document.location.href.split('@')[1];
+
+
+		console.log(tg);
+		console.log('U: ', u);
+
+		if(typeof u == 'string'){
 			var tgName = tg[0];
 
-			if(!tg[1])
-				this.loadViews(tgName);
-			else
-			if(tg[1] == '8')
+			this.owner = u;
+
+			var id = Pix8.words[tgName];
+			if(!id) return;
+
+			if(!u.length)
 				this.loadPublic(tgName);
 			else
-				this.loadView(tgName);
+				this.loadView(id);
 		}
-		else
-			this.loadView(tag);
+		else{
+			this.owner = User.id;
+
+			var id = Pix8.items[tag];
+			if(!id) return;
+			this.loadView(id);
+		}
 	},
 
 	//will create an element with all events and puts it into its place
-	add: function(url){
+	add: function(url, $before){
 		if(!url) return;
 		$(this.$t).children('.clone').remove();
 
@@ -89,7 +111,7 @@ Carousel.prototype = {
 			url = qs.imgurl;
 
 		var $thumb = this.createThumb(url);
-		$thumb.appendTo(this.$t).data({src: url});
+		$thumb[$before?'insertBefore':'appendTo']($before || this.$t).data({src: url});
 
 		this.supportEvents($thumb);
 		return $thumb;
@@ -101,8 +123,10 @@ Carousel.prototype = {
 
 		var carousel = this;
 
+		/*
 		if(url.indexOf('http://')<0 && url.indexOf('https://')<0 && url.indexOf('ipfs://')<0)
 			url = 'http://'+url;
+		*/
 
 		var $dub = this.find(url);
 		if($dub) $dub.remove();
@@ -112,32 +136,22 @@ Carousel.prototype = {
 			path: carousel.getPath(),
 			//tag: carousel.$tag.val(),
 			href: document.location.href,
-			link: document.location.href,
 			gid: User.id,
 			type: 'image'
 		};
 		add = true;
 
 		var save = function(){
-			Pix.send({
-				cmd: 'save',
-				item: item,
-				collection: Cfg.collection
-			}, function(r){
-				if(!r || !r.item) return;
-
-				//pix.defaultView.carousels[carousel.$t.index()].items.push(r.item.id);
-				Pix.items[r.item.id] = r.item;
-
-				var $thumb = pix.build(r.item);
+			Data.save(item).then(item => {
+				var $item = pix.build(item);
 
 				if($thumbOn && $thumbOn.length)
-					$thumb.insertBefore($thumbOn);
+					$item.insertBefore($thumbOn);
 				else
-					carousel.$t.append($thumb);
+					carousel.$t.append($item);
 
-				carousel.resize($thumb);
-				carousel.supportEvents($thumb);
+				carousel.resize($item);
+				carousel.supportEvents($item);
 
 				carousel.updateView();
 			});
@@ -174,10 +188,17 @@ Carousel.prototype = {
 
 				console.log(item);
 
-				save();
+
+				Data.download(url).then(id => {
+					item.file = id;
+					console.log(id);
+					console.log(item);
+					save();
+				});
 			}, 500);
 
-			img.onerror = function(){
+			img.onerror = function(ev){
+				console.log(ev);
 				if(item.type == 'link'){
 					clearInterval(intr);
 					console.error('Unable to load image: '+img.src);
@@ -186,7 +207,6 @@ Carousel.prototype = {
 
 				item.type = 'link';
 				item.link = url;
-
 
 				Pix.send({
 					cmd: 'website',
@@ -215,6 +235,7 @@ Carousel.prototype = {
 				console.log('loaded');
 			};
 			img.src = carousel.formatUrl(url);
+			console.log(img.src);
 		}
 			//db.post(item);
 	},
@@ -283,11 +304,6 @@ Carousel.prototype = {
 
 		var name = url.split(/(\\|\/)/g).pop();
 
-		console.log(this.files);
-		if(this.files.indexOf(name)+1){
-			var src = 'http://127.0.0.1:9001/'+name;
-		}
-
 
 		var img = new Image;
 		var $thumb = $(img).attr({
@@ -305,7 +321,7 @@ Carousel.prototype = {
 		return $thumb;
 	},
 
-	// makes  it possible to drag and drop on selected item
+	// makes it possible to drag and drop on selected item
 	supportEvents: function($thumb){
 		if(!$thumb || !$thumb.length) return;
 
@@ -320,13 +336,12 @@ Carousel.prototype = {
 
 			var item = $thumb.data();
 
+			$thumb.addClass('focus').siblings().removeClass('focus');
+			$('*:focus').blur();
+
 			if(pix.move) delete pix.move;
 			else
 			if(item.type == 'view'){
-				if(item.image && item.path){
-					window.open(item.path, "_blank");
-				}
-				else
 				if(item.path && item.owner)
 					t.onTag(item.path+'@'+item.owner);
 			}
@@ -356,15 +371,18 @@ Carousel.prototype = {
 
 		var okDrag = (
 			!$thumb.hasClass('item-user') &&
-			this.getOwner() == User.name
+			true //this.getOwner() == User.name
 		);
 
 		console.log(okDrag);
 
 		$thumb.drag("init", function(ev, dd){
 			console.log(dd);
-		}).drag("start", function(ev, dd){
+		}, {click:true}).drag("start", function(ev, dd){
 			var o = $(this).offset();
+
+			console.log(o);
+
 			$(this).data('_pos', o.left+'x'+o.top);
 			dd.startParent = this.parentNode;
 
@@ -407,7 +425,8 @@ Carousel.prototype = {
 			var $proxy = $(dd.proxy);
 
 			var dy = Math.abs(dd.deltaY),
-				dx = Math.abs(dd.deltaX);
+					dx = Math.abs(dd.deltaX);
+
 
 			if(dy > Cfg.drag.dy && (/*dd.lengthC > 1 || */dx > Cfg.drag.dx) && !pix.slide){
 				$proxy.addClass('drag').show();
@@ -535,9 +554,7 @@ Carousel.prototype = {
 				$thumb.replaceWith($newThumb);
 				$thumb.data(thumb);
 
-        var i = dd.index - 1;
-				var $before = t.$t.children('.thumb').eq(i < 0?0:i);
-        console.log($);
+				var $before = t.$t.children('.thumb').eq(dd.index-1);
 				if($before.length)
 					$thumb.insertBefore($before);
 				else
@@ -775,6 +792,9 @@ Carousel.prototype = {
 		if(path.indexOf(search)+1)
 			path = path.substr(path.indexOf(search)+search.length+1).split('/')[0];
 
+		var search = 'th.ai';
+		if(path.indexOf(search)+1)
+			path = path.substr(path.indexOf(search)+search.length+1).split('/')[0];
 
 		var search = 'preload.lh';
 		if(path.indexOf(search)+1)
@@ -792,14 +812,14 @@ Carousel.prototype = {
 			path = path.split('@')[0];
 		}
 
-		console.log(path);
-
 		return path;
 	},
 
 	// what goes after @ in tag
 	getOwner: function(){
-		//if(this.owner) return this.owner;
+		if(this.owner) return this.owner;
+		return User.id;
+		return;
 
 		var path = (
 			((this.$tag && !this.$tag.attr('disabled'))?this.$tag.val():'') ||
@@ -822,44 +842,26 @@ Carousel.prototype = {
 		var carousel = this;
 		if(!view) view = {
 			items: this.getIds(),
-			type: 'view'
+			type: 'view',
+			tag: this.$tag.val()
 		};
 
 		view.path = carousel.getPath();
 
-		if(view.path.indexOf('http') == 0 || view.path.indexOf('https') == 0)
+		if(view.path.indexOf('http') == 0)
 			view.title = carousel.getTitle();
 
-		view.gid = User.id;
+		//view.gid = User.id;
 		view.owner = this.getOwner();
 
+		console.log(view);
 		if(!view.items || !view.items.length) return;
 
-		console.log(view);
-
-		var save = function(){
-			Pix.send({
-				cmd: 'save',
-				item: view,
-				collection: Cfg.collection
-			}, function(r){
-				console.log(r);
-				if(r.item){
-					carousel.view = r.item;
-
-					if(view.title){
-						chrome.runtime.sendMessage({
-							cmd: 'shot',
-							skip: $('#pic').height()
-						});
-					}
-
-					carousel.updatePublic();
-				}
-			});
-		}
-
-		save();
+		Data.save(view).then(view => {
+			console.log(view);
+			carousel.view = view;
+			Pix8.linkView(view);
+		});
 
 		return view;
 	},
@@ -878,23 +880,11 @@ Carousel.prototype = {
 			items: carousel.getIds()
 		};
 
-		Pix.send({
-			cmd: 'update',
-			id: this.view.id,
-			set: set,
-			collection: Cfg.collection
-		}, function(r){
-			if(r.item){
-				carousel.view.items = set.items;
-				carousel.updatePublic();
-				/*
-				chrome.runtime.sendMessage({
-					cmd: 'carousel.updated',
-					path: carousel.getPath()
-				});
-				*/
-			}
-		});
+		var view = $.extend(this.view, set);
+
+		console.log(view);
+
+		Data.save(view);
 	},
 
 	updatePublic: function(){
@@ -925,7 +915,7 @@ Carousel.prototype = {
 		function(r){
 			var ids = [];
 			(r.items || []).forEach(function(item){
-				Pix.items[item.id] = item;
+				Data.items[item.id] = item;
 				ids.push(item.id);
 			});
 
@@ -934,30 +924,17 @@ Carousel.prototype = {
 	},
 
 	//load sequence of private items and put them into carousel
-	loadView: function(filter, cb){
-		filter = {
-			path: this.getPath(),
-			owner: this.getOwner(),
-			type: 'view'
-		};
-
+	loadView: function(id){
 		var carousel = this;
 		delete carousel.view;
 
 		carousel.$t.children('.thumb').remove();
-		Pix.send({
-			cmd: 'get',
-			filter: filter,
-			collection: Cfg.collection
-		},
-		function(r){
-			if(r.item)
-				carousel.setView(r.item);
-			else
-				carousel.loadPublic();
 
-			if(cb) cb(r.item);
-		});
+		console.log('Load view: ', id);
+		Data.load(id).then(item => {
+			if(!item) return;
+			carousel.setView(item);
+		}, fail => {});
 	},
 
 	//load sequence of public items and put them into carousel
@@ -1031,12 +1008,11 @@ Carousel.prototype = {
 	prependView: function(path){
 		var carousel = this;
 		this.fetchView(path).then(view => {
-			console.log(view);
 			if(!view || !view.items || !view.items.length) return;
 
 			Pix.preload(view.items).then(function(){
-				view.items.reverse().slice(0, carousel.cfg.fetchLimit).forEach(function(id){
-					var item = Pix.items[id],
+				view.items.slice(0, carousel.cfg.fetchLimit).forEach(function(id){
+					var item = Data.items[id],
 							$item = Pix.build(item);
 
 					carousel.$t.prepend($item);
@@ -1056,42 +1032,14 @@ Carousel.prototype = {
 
 		var carousel = this;
 
-		if(view.owner)
-			carousel.owner = view.owner
-
+		console.log(this.view);
 		//Pix.checkJquery();
 
 		carousel.$t.children('.thumb').remove();
-		if(view && view.items && view.items.length){
-			//this.toIds(view.items);
-
-			var newIds = [];
-			view.items.forEach(function(id){
-				if(!Pix.items[id])
-					newIds.push(id);
-			});
-
-			if(newIds.length)
-				Pix.send({
-					cmd: 'load',
-					filter: {
-						id: {$in: newIds},
-						//path: "console",
-						//type: "public"
-					},
-					collection: Cfg.collection
-				}, function(r){
-					console.log(r);
-					(r.items || []).forEach(function(item){
-						Pix.items[item.id] = item;
-					});
-
-					carousel.spread(view.items);
-				});
-
-			else
-				carousel.spread(view.items);
-		}
+		Data.load(view.items).then(function(items){
+			console.log(items);
+			carousel.spread(view.items || []);
+		});
 
 		//Pix.cleanTargets();
 	},
@@ -1116,7 +1064,7 @@ Carousel.prototype = {
 			carousel.view = false;
 			carousel.$t.children('.thumb').remove();
 			(r.items || []).forEach(function(item){
-				Pix.items[item.id] = item;
+				Data.items[item.id] = item;
 				ids.push(item.id);
 			});
 
@@ -1172,7 +1120,7 @@ Carousel.prototype = {
 						carousel.loading--;
 
 						if(r.item){
-							Pix.items[r.item.id] = r.item;
+							Data.items[r.item.id] = r.item;
 							var $thumb = carousel.push(r.item.id);
 						}
 
@@ -1258,11 +1206,10 @@ Carousel.prototype = {
 	push: function(id){
 		var $item;
 
-		console.log(id);
-		var item = Pix.items[id];
+		var item = Data.items[id];
+		console.log(item);
 		if(!item) return;
 
-		console.log(item);
 		$item = pix.build(item);
 
 		this.$t.append($item);
@@ -1346,12 +1293,9 @@ Carousel.prototype = {
 		this.$t[0].addEventListener('dragover', cancel);
 		this.$t[0].addEventListener('dragenter', cancel);
 		this.$t[0].addEventListener('drop', function(ev){
-			/*
+			/*] */
 			console.log(ev);
 			console.log(ev.dataTransfer.files);
-			console.log(ev.dataTransfer.getData('Text'));
-			console.log(ev.dataTransfer.getData('text/plain'));
-			*/
 
 			if(ev.dataTransfer.files.length)
 				return t.upload(ev);
@@ -1360,15 +1304,24 @@ Carousel.prototype = {
 
 			txt = t.getImgUrl(Pix.parseURL(txt));
 
+			if(ev.dataTransfer && ev.dataTransfer.files[0])
+				txt = ev.dataTransfer.files[0].path;
+
+			console.log(txt);
+			console.log(ev.dataTransfer.files);
+
+
 			var $thumb = $(ev.target);
 			if(!$thumb.data('id'))
 				$thumb = $thumb.parents('span');
 
 			var name = txt.split(/(\\|\/)/g).pop();
+			/*
 			if(Pix.files.indexOf(name)<0)
 				Pix.send({cmd: 'download', url: txt});
+			*/
 
-			if(isURL(txt)){
+			if(true || isURL(txt)){
 				(t.cfg.onAdd || $.noop)(txt, $thumb);
 			}
 			else{
@@ -1396,6 +1349,10 @@ Carousel.prototype = {
 
 			// Closure to capture the file information.
 			reader.onload = function(ev){
+				console.log(ev.target.result);
+
+				//Data.save(ev.target.result).then();
+				return;
 				ipfs.add(Buffer.from(ev.target.result)).then(function(r){
 					if(!r || !r.length) return;
 
@@ -1409,14 +1366,43 @@ Carousel.prototype = {
 		return false;
 	},
 
+	/*
+	var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+  console.log(JSON.stringify(items)); // will give you the mime types
+  for (index in items) {
+    var item = items[index];
+    if (item.kind === 'file') {
+      var blob = item.getAsFile();
+      var reader = new FileReader();
+      reader.onload = function(event){
+        console.log(event.target.result)}; // data url!
+      reader.readAsDataURL(blob);
+    }
+  }
+	*/
 
-	upload: function(ev){
-		var files = ev.dataTransfer.files; // FileList object
+	upload: function(ev, $before){
+		console.log(ev);
+
+		var files;
+		if(ev.type == 'drop')
+			files = ev.dataTransfer.files; // FileList object
+		else
+		if(ev.type == 'paste')
+			files = (ev.clipboardData || ev.originalEvent.clipboardData).items;
 
 		var carousel = this;
 	  // Loop through the FileList and render image files as thumbnails.
 		for (var i = 0, f; f = files[i]; i++){
 			// Only process image files.
+			console.log(f);
+
+
+			if (f.kind === 'file'){
+				f = f.getAsFile();
+				console.log(f);
+			}
+
 			if(!f.type.match('image.*'))
 				continue;
 
@@ -1433,6 +1419,9 @@ Carousel.prototype = {
 				var $item = Pix.build(item);
 				$item.addClass('uploading');
 
+				if($before)
+					$item.insertBefore($before);
+				else
 				if(ev.target.src)
 					$item.insertBefore(ev.target.parentNode);
 				else
@@ -1453,7 +1442,7 @@ Carousel.prototype = {
 							width: img.naturalWidth,
 							height: img.naturalHeight,
 							path: carousel.getPath(),
-							//tag: carousel.$tag.val(),
+							tag: carousel.$tag.val(),
 							href: document.location.href,
 							gid: User.id,
 							type: 'image'
@@ -1465,7 +1454,7 @@ Carousel.prototype = {
 							collection: Cfg.collection
 						}, function(r){
 							if(r.item){
-								Pix.items[r.item.id] = r.item;
+								Data.items[r.item.id] = r.item;
 								$item.removeClass('uploading');
 								$item.data(r.item);
 								$item.attr({
@@ -1486,6 +1475,151 @@ Carousel.prototype = {
 
 		ev.preventDefault();
 		return false;
+	},
+
+	upload: function(ev, $before){
+		var files;
+		if(ev.type == 'drop')
+			files = ev.dataTransfer.files; // FileList object
+		else
+		if(ev.type == 'paste')
+			files = (ev.clipboardData || ev.originalEvent.clipboardData).items;
+
+		var carousel = this;
+		// Loop through the FileList and render image files as thumbnails.
+		for (var i = 0, f; f = files[i]; i++){
+			// Only process image files.
+			console.log(f);
+
+
+			if (f.kind === 'file'){
+				f = f.getAsFile();
+				console.log(f);
+			}
+
+			if(!f.type.match('image.*'))
+				continue;
+
+			var reader = new FileReader();
+
+			var lf = f;
+			// Closure to capture the file information.
+			reader.onload = function(ev1){
+				var item = {
+					src: ev1.target.result,
+					type: 'image'
+				};
+
+				var $item = Pix.build(item);
+				$item.addClass('uploading');
+
+				if($before)
+					$item.insertBefore($before);
+				else
+				if(ev.target.src)
+					$item.insertBefore(ev.target.parentNode);
+				else
+					carousel.$t.append($item);
+
+				carousel.resize($item);
+
+				console.log(item);
+				var reader = new FileReader();
+				reader.onload = function(ev2){
+					console.log(ev2.target.result);
+					Data.saveFile(ev2.target.result).then(file => {
+						if(!file || !file.id) return $item.remove();
+						var id = file.id;
+
+						var img = $item.children('img')[0];
+
+						var item = {
+							src: Cfg.files + id,
+							file: id,
+							width: img.naturalWidth,
+							height: img.naturalHeight,
+							path: carousel.getPath(),
+							tag: carousel.$tag.val(),
+							type: 'image'
+						};
+
+						Data.save(item).then(item => {
+							$item.removeClass('uploading');
+							$item.data(item);
+							$item.attr({
+								id: 'image-'+item.id
+							});
+
+							carousel.resize($item);
+							carousel.supportEvents($item);
+							carousel.updateView();
+						});
+					});
+				}
+				reader.readAsArrayBuffer(lf);
+			};
+			reader.readAsDataURL(f);
+		};
+
+		ev.preventDefault();
+		return false;
+	},
+
+	paste: function(dataURL, $before){
+		var item = {
+			src: dataURL,
+			type: 'image'
+		};
+
+		var $item = Pix.build(item);
+		$item.addClass('uploading');
+
+		if($before)
+			$item.insertBefore($before);
+		else
+			carousel.$t.append($item);
+
+		carousel.resize($item);
+
+		var reader = new FileReader();
+		reader.onload = function(ev2){
+			ws.upload(ev2.target.result, function(file){
+				if(!file) return $item.remove();
+
+				var img = $item.children('img')[0];
+
+				var item = {
+					src: Cfg.files+file.id,
+					file: file.id,
+					width: img.naturalWidth,
+					height: img.naturalHeight,
+					path: carousel.getPath(),
+					tag: carousel.$tag.val(),
+					href: document.location.href,
+					gid: User.id,
+					type: 'image'
+				};
+
+				ws.send({
+					cmd: 'save',
+					item: item,
+					collection: Cfg.collection
+				}, function(r){
+					if(r.item){
+						Data.items[r.item.id] = r.item;
+						$item.removeClass('uploading');
+						$item.data(r.item);
+						$item.attr({
+							id: 'image-'+r.item.id
+						});
+
+						carousel.resize($item);
+						carousel.supportEvents($item);
+						carousel.updateView();
+					}
+				});
+			});
+		}
 	},
 
 	// when slide its should have some momentum

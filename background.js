@@ -31,9 +31,10 @@ window.Pic = {
       .then(s => s.executeCodes('var User = '+jsonUser+';'))
       .then(s => s.injectCss("carousel.css"))
       .then(s => s.injectCss("GG.css"))
+      .then(s => s.injectCss("pix8list.css"))
       .then(s => s.executeScripts(
-        "cfg.js", "lib/functions.js", "lib/gif.js", "builder.js", "pix.js",
-        "carousel.js", "suggest.js", "shot.js", 'GG.js', "run.js"
+        "cfg.js", "lib/functions.js", "lib/gif.js", "lib/Catalog.js",  "lib/Elem.js", "pix8.js", "pix.js",
+        "carousel.js", "suggest.js", 'GG.js', "run.js"
       ))
       .then(s => s.injectCss("ext.css"))
       .then(function(){
@@ -139,27 +140,37 @@ chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
 
       image.onload = function(){
         var ctx = document.createElement('canvas').getContext('2d');
-        ctx.canvas.width = d.width;
-        ctx.canvas.height = d.height;
+        ctx.canvas.width = d.width || image.width;
+        ctx.canvas.height = (d.height || image.height) - (d.skip || 0);
 
-        ctx.drawImage(this,
-          d.left - d.scrollLeft,
-          d.top - d.scrollTop,
-          d.width, d.height, 0, 0,
-          d.width, d.height
+        var l = (d.left - (d.scrollLeft || 0)) || 0,
+            t = (d.top - (d.scrollTop || 0)) || d.skip || 0;
+
+        ctx.drawImage(this, l, t,
+          ctx.canvas.width, ctx.canvas.height, 0, 0,
+          ctx.canvas.width, ctx.canvas.height
         );
 
         ctx.canvas.toBlob(function(blob){
           ws.upload(blob, function(file){
-            console.log(file);
             if(file){
-              var url = 'http://'+Cfg.server+file.id;
-              chrome.tabs.sendMessage(sender.tab.id, {cmd: 'push', src: url});
+              var url = Cfg.files+file.id;
+              chrome.tabs.sendMessage(sender.tab.id, {
+                cmd: 'shot',
+                src: url,
+                left: l,
+                top: t,
+                skip: d.skip,
+                width: ctx.canvas.width,
+                height: ctx.canvas.height
+              });
             }
           });
         }, 'image/jpeg');
 
       };
+
+      //console.log(src);
       image.src = src;
     });
   }

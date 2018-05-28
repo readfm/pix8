@@ -5,6 +5,7 @@ var Cfg = {
 	server: 'io.cx/',
 	//server: '10.0.0.29/',
 	files: '//f.io.cx/',
+	files_local: 'http://127.0.0.1:5030/items/',
 	thumber: 'http://thumb.pix8.co/',
 
 	/*

@@ -1,5 +1,7 @@
 body{
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 #view{
@@ -11,9 +13,9 @@ body{
 
 #youtube{
     height: 100%;
-    width: 100%;   
+    width: 100%;
     margin: 0;
-    border: 0; 
+    border: 0;
 }
 
 #frames{
@@ -28,9 +30,19 @@ body{
     height: 100%;
 }
 
+
+#pix8-url{
+   width: 100%;
+   background: transparent;
+   height: 100%;
+   margin: 0;
+   border: 0;
+   color: white;
+}
+
 #gg{
     height: 100%;
-    width: 100%; 
+    width: 100%;
     margin: 0;
     object-fit: contain;
 }
@@ -264,7 +276,24 @@ body{
 #pay-openTip{
     position: absolute;
     top: 1px;
-    right: 50px;
+    right: 80px;
     color: white;
     cursor: pointer;
+}
+
+#pic-context{
+    z-index: 2000;
+    height: auto;
+    z-index: 177;
+}
+
+#pic8-minimize, #pic8-maximize, #pic8-close{
+    float: right;
+}
+
+#browser-window{
+    width: 100%;
+    display: block;
+    flex-grow: 1;
+    border: 0;
 }

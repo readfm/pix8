@@ -2,7 +2,7 @@
     left: 16px;
 }
 
-#pix8list-toggle, #pix8list-infinite, #pix8list-mute{
+#pix8list-toggle, #pix8list-infinite, #pix8list-mute, #pix8-openLinks{
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -27,15 +27,20 @@
     display: none;
 }
 
+#pix8-openLinks{
+    left: 40px;
+    display: none;
+}
+
 #pix8-title{
     height: 20px;
     margin: 0;
     background-color: rgba(0, 0, 0, 0.4);
     color: #cccccc;
-    margin-left: 42px;
+    margin-left: 43px;
     padding: 2px;
     border: 0;
-    width: 100%;
+    width: calc(100% - 43px);
 }
 
 #pix8list{
@@ -50,7 +55,7 @@
 }
 
 #pix8list-filters{
-    margin-left: 40px;
+    margin-left: 60px;
     color: white;
 }
 
@@ -66,7 +71,7 @@
 }
 
 #pix8list-items{
-    height: calc(100% - 20px);
+    height: calc(100% - 24px);
     overflow-y: auto;
     overflow-x: hidden;
 }
