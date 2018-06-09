@@ -1,0 +1,103 @@
+#head{
+    position: fixed;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.7);
+    left: 0;
+    right: 0;
+    top: 0;
+    background: repeating-linear-gradient(to left, white, #f3f3f3 14px, #ffffff 10px);
+    cursor: w-resize;
+    opacity: 0.9;
+    z-index: 40;
+}
+
+#head > input{
+    margin: 0;
+    background: rgba(255, 255, 255, 0.95);
+    border: 0;
+    font-size: 24px;
+    width: 200px;
+}
+
+body{
+    padding-top: 40px;
+}
+
+#tags{
+    position: fixed;
+    width: 300px;
+    left: -350px;
+    top: 40px;
+    bottom: 0;
+    z-index: 90;
+    background: rgb(247, 247, 247) url(bg.jpg);
+    box-shadow: 4px 2px 10px -5px #000000;
+}
+
+#tags > a{
+    display: block;
+    font-weight: bold;
+    margin: 3px 6px;
+    font-size: 16px;
+}
+
+#images-list > .item{
+    height: 200px;
+    position: relative;
+    display: inline-block;
+    margin: 0.5px;
+    vertical-align: top;
+    margin: 1px;
+    object-fit: cover;
+    float: left;
+    background-size: contain;
+}
+
+@keyframes opacity{
+  0%   { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+#images-list > .item.uploading{
+    animation: opacity 0.3s ease infinite; 
+}
+
+#images-list > .item > iframe{
+    height: 100%;
+}
+
+.iframe-cover{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.item > img{
+    height: 100%;
+    margin: 0;
+    /* opacity: 0; */
+    background-size: contain;
+    max-width: 100vw;
+    object-fit: contain;
+}
+
+#remove{
+    position:fixed;
+    display: none;
+    bottom: 0;
+    right: 0;
+    color: white;
+    background: rgba(218, 22, 22, 0.7);
+    background: rgba(218, 22, 22, 0) linear-gradient(rgba(239, 37, 16, 0.26), rgba(255, 18, 18, 0.94));
+    width: 100%;
+    height: 40px;
+    text-align: center;
+    font-size: 12px;
+    /* border-radius: 80px; */
+}
+
+#remove.active{
+    background: rgba(22, 218, 22, 0.7);
+}

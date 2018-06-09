@@ -1,1 +1,1 @@
-electron . pix8me
+electron app.js

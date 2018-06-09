@@ -1,219 +1,229 @@
-window.carousel;
+var $pic = $("<div id='pic'></div>").prependTo('body');
 
-//$(function(){
-Site.ready.push(function(){
-	var $pic = Pix.$pic = $("<div>", {id: 'pic', class: 'bar'}).prependTo('body');
+var onScroll = function(){
+	if(Cfg.fixed) return;
+	var top = $(this).scrollTop();
 
-	var $resize = $("<div id='pic-resize'></div>");
-	$resize.appendTo($pic).dblclick(function(){
-		if(!Cfg.toBottom) return;
+	//$pic.css('position', top?'fixed':'static');
+	$pic.css('top', top - $pic.height());
+};
 
-		var onTop = !($pic.css('top') == 'auto');
-		if(onTop){
-			$pic.css({
-				top: 'auto',
-				bottom: 0
-			});
-			$resize.css({
-				top: 0,
-				bottom: 'auto'
-			});
-		}
-		else{
-			$pic.css({
-				top: 0,
-				bottom: 'auto'
-			});
-			$resize.css({
-				top: 'auto',
-				bottom: 0
-			});
-		}
-	});
+var Pix8 = {
+	check: function(){
+		var $carousels = $pic.children('.carousel');
+	},
 
-	var newCarousel = function(tag){
-		var carousel;
-		carousel = new Carousel({
-			name: 'images',
-			onAdd: function(url, $thumb){
-				carousel.include(url, $thumb);
-			},
-			preloadLocal: false
-		});
-
-		carousel.$t.appendTo($pic);
-
-		carousel.onTag(tag);
-
-		Site.resize();
-
-		return carousel;
+	resize: function(){
+		var height = $('#pic').height();
+		chrome.storage.local.set({height: height});
+		chrome.runtime.sendMessage({cmd: 'resize', height: height});
+		Pix.leaveGap(height);
 	}
+};
 
-	var carouselBig = Pix.carouselBig = carousel = new Carousel({
-		name: 'site images',
+var $resize = $("<div id='pic-resize'></div>");
+$resize.appendTo($pic).dblclick(function(){
+	if(!Cfg.toBottom) return;
+
+	var onTop = !($pic.css('top') == 'auto');
+	if(onTop){
+		$pic.css({
+			top: 'auto',
+			bottom: 0
+		});
+		$resize.css({
+			top: 0,
+			bottom: 'auto'
+		});
+	}
+	else{
+		$pic.css({
+			top: 0,
+			bottom: 'auto'
+		});
+		$resize.css({
+			top: 'auto',
+			bottom: 0
+		});
+	}
+});
+
+$(document).scroll(onScroll);
+
+var newCarousel = Pix.newCarousel = function(tag){
+	var carousel;
+	carousel = new Carousel({
+		name: 'images',
 		onAdd: function(url, $thumb){
 			carousel.include(url, $thumb);
-		},
-		preloadLocal: false,
-		preloadGoogle: false
+		}
 	});
-	carousel.$t.attr('id', 'mainCarousel');
+
 	carousel.$t.appendTo($pic);
 
-	carousel.onTag();
+	//$pic.height($pic.height() + carousel.$t.height());
+
+	carousel.onTag(tag);
+
+	Pix8.resize();
+
+	Pix.carousels.push(carousel);
+
+	$('#suggestions').hide();
+
+	return carousel;
+}
+
+var carouselBig = carousel = new Carousel({
+	name: 'site images',
+	onAdd: function(url, $thumb){
+		carousel.include(url, $thumb);
+	}
+});
+Pix.carousels.push(carousel);
+carousel.$t.attr('id', 'mainCarousel');
+carousel.$t.appendTo($pic);
+
+carousel.onTag();
+
+/*
+var $recent = $("<span id='pic-recent' class='btn'>&#8801;</span>").appendTo($resize);
+$recent.click(function(){
+	var $carousel = $pic.children('.carousel').last();
+
+	if(
+		$carousel.attr('id') == 'mainCarousel' ||
+		$carousel.children('.thumb').length
+	)
+		newCarousel();
+});
+*/
+
+var $tag = $("<input id='pic-tag'/>").appendTo($resize);
+$tag.bindEnter(function(){
+	if(this.value)
+		newCarousel(this.value);
+	this.value = '';
+}).click(function(){
+	$tag.focus();
+});
+
+jQuery.event.special.drag.defaults.not = '';
+$tag.drag("start", function(ev, dd){
+	dd.height = parseInt($('#pic').height());
+	var $carousel = $pic.children('.carousel').last();
+	dd.carouselHeight = $carousel.height();
+	dd.left = $carousel[0].scrollLeft;
+	dd.clientX = ev.clientX;
+	dd.done = 0;
+
+}, {click: true}).drag(function(ev, dd){
+	var onTop = !($pic.css('top') == 'auto'),
+			delta = dd.deltaY * (onTop?1:(-1));
+
+	var dif = dd.deltaY - dd.done;
+	dd.done = dd.deltaY;
 
 
-	var $tag = Pix.$tag = $("<input id='pic-tag'/>").appendTo($resize);
-	$tag.bindEnter(function(){
-		var tag = this.value;
-		if(tag){
-			if(tag[0] == '+')
-				$('#pic > .carousel').first()[0].carousel.prependView(tag.substr(1));
-			else
-				newCarousel(tag);
-		}
-		this.value = '';
-	}).click(function(){
-		$tag.focus();
-	});
+	var $carousel = $pic.children('.carousel').last(),
+			carousel = $carousel[0].carousel;
 
-
-	Pix.$cover = $('#cover');
-	jQuery.event.special.drag.defaults.not = '';
-	$tag.drag("start", function(ev, dd){
-		dd.height = parseInt($('#pic').height());
-		var $carousel = $pic.children('.carousel').last();
-		dd.carouselHeight = $carousel.height();
-		dd.left = $carousel[0].scrollLeft;
-		dd.clientX = ev.clientX;
-		dd.done = 0;
-
-		Pix.$cover.show();
-	}, {click: true}).drag(function(ev, dd){
-		var onTop = !($pic.css('top') == 'auto'),
-			  delta = dd.deltaY * (onTop?1:(-1));
-
-		var dif = dd.deltaY - dd.done;
-		dd.done = dd.deltaY;
-
-
-		var $carousel = $pic.children('.carousel').last(),
-				carousel = $carousel[0].carousel;
-
-		var height = $carousel.height() + dif;
-		if(height){
-			$carousel.height(height);
-			carousel.resize();
-		}
-
-		if(!$carousel.height())
-			carousel.$t.remove();
-
-		var newL = (dd.left + dd.clientX) * carousel.$t.height() / dd.carouselHeight,
-			dif = newL - dd.left - dd.clientX;
-		carousel.t.scrollLeft = dd.left + dif;
-
-		Site.resize();
-	}).drag("end", function(ev, dd){
-		Pix.$cover.hide();
-		var height = $('#pic').height();
-		//chrome.storage.local.set({height: height});
-		//chrome.runtime.sendMessage({cmd: 'resize', height: height});
-		//Pix.leaveGap(height);
-		//onScroll();
-	});
-	Site.resize();
-
-	$('#pix8-toggle').click(function(){
-		$('#pic').toggle();
-		Site.resize();
-	});
-
-
-	var $trash = Pix.$trash = $("<div id='pic-trash'>&#10006;</div>").appendTo($pic);
-	$trash.drop("start", function(ev, dd){
-		console.log(dd);
-		$(dd.proxy).css('opacity', 0.5);
-		return true;
-	}).drop("end", function(ev, dd){
-		$(dd.proxy).css('opacity', 1);
-	}).drop(function(ev, dd){
-		var $thumb = $(dd.drag);
-		var carousel = Pix.drag2carousel;
-		$thumb.add(dd.proxy).remove();
-		carousel.updateView();
-	});
-
-
-	if(Cfg.fixed){
-		$pic.css('top', 0);
+	var height = $carousel.height() + dif;
+	if(height){
+		$carousel.height(height);
+		carousel.resize();
+	}
+	else{
+		carousel.$t.remove();
 	}
 
-
-	$(document).bind("keydown", function(ev){
-		/*
-		if(!carousel.$t.children('.focus').length){
-			carousel.$t.children().eq(0).addClass('focus');
-			return;
-		}
-		*/
-
-		if(ev.keyCode == 37){
-			carousel.motion(-25);
-			//carousel.$t.children('.focus').prev().addClass('focus').siblings().removeClass('focus');
-		}
-		else
-		if(ev.keyCode == 39){
-			carousel.motion(25);
-			//carousel.$t.children('.focus').next().addClass('focus').siblings().removeClass('focus');
-		}
-		else
-		if(ev.keyCode == 13){
-			//carousel.$t.children('.focus').click();
-		}
-	});
-
-	$(document).bind("keyup", function(ev){
-		if(ev.keyCode == 38 && !ev.ctrlKey){
-			Site.resizeNext(Pix.$pic, -100);
-		}
-		else
-		if(ev.keyCode == 40 && !ev.ctrlKey){
-			Site.resizeNext(Pix.$pic, 100);
-		}
-	});
-
-	$('<link>').attr({
-	    type: 'text/css',
-	    rel: 'stylesheet',
-	    href: Pix8list.home+'pix8/pix8list.css'
-	}).appendTo('head');
-
-	Pix8list.init();
-
-	Pix.ready.forEach(function(fn){
-		fn(Site.session);
-	});
-
-	//$.getScript('/pix8/pix8list.js');
-
-	/*
-	$('<script>').attr({
-	    src: '/pix8/pix8list.js'
-	}).appendTo('head');
-	*/
-
-	//Pay.init();
-
-	console.log('ready');
+	var newL = (dd.left + dd.clientX) * carousel.$t.height() / dd.carouselHeight,
+		dif = newL - dd.left - dd.clientX;
+	carousel.t.scrollLeft = dd.left + dif;
+}).drag("end", function(ev, dd){
+	Pix8.resize();
+	onScroll();
 });
 
 
-/*
-chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
-	console.log(d);
 
+Pix8.check();
+
+Pix.leaveGap($pic.height());
+
+
+var $trash = Pix.$trash = $("<div id='pic-trash'>&#10006;</div>").appendTo($pic);
+$trash.drop("start", function(ev, dd){
+	console.log(dd);
+	$(dd.proxy).css('opacity', 0.5);
+	return true;
+}).drop("end", function(ev, dd){
+	$(dd.proxy).css('opacity', 1);
+}).drop(function(ev, dd){
+	var $thumb = $(dd.drag);
+	var carousel = Pix.drag2carousel;
+	$thumb.add(dd.proxy).remove();
+	carousel.updateView();
+});
+
+
+
+GG.init();
+Pix8list.init();
+
+/*
+carousel.listFiles(function(){
+	carousel.$tag.val();
+	carousel.$tag.change();
+});
+
+chrome.storage.local.get('tag', function(d){
+	if(d && d.tag){
+		carousel.$tag.val(d.tag);
+		carousel.$tag.change();
+	}
+	else
+		carousel.$tag.change();
+});
+
+chrome.storage.local.get('height', function(d){
+  if(d && d.height) $('#pic').height(d.height);
+  carousel.resize();
+  onScroll();
+});
+*/
+
+
+if(Cfg.fixed){
+	$pic.css('top', 0);
+}
+
+
+$(document).bind("keydown", function(ev){
+	/*
+	if(!carousel.$t.children('.focus').length){
+		carousel.$t.children().eq(0).addClass('focus');
+		return;
+	}
+	*/
+
+	if(ev.keyCode == 37){
+		carousel.motion(-25);
+		//carousel.$t.children('.focus').prev().addClass('focus').siblings().removeClass('focus');
+	}
+	else
+	if(ev.keyCode == 39){
+		carousel.motion(25);
+		//carousel.$t.children('.focus').next().addClass('focus').siblings().removeClass('focus');
+	}
+	else
+	if(ev.keyCode == 13){
+		//carousel.$t.children('.focus').click();
+	}
+});
+
+chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
+		console.log(d);
   	if(d.cmd == 'carousel'){
   		if(d.do) $pic[d.do]();
   		sendResponse({
@@ -243,9 +253,25 @@ chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
   		carousel.files = d.files;
   	}
   	else
-  	if(d.cmd == 'push'){
-  		var $thumbOn = carousel.$t.children().eq(0);
-  		carousel.include(Pix.parseURL(d.src), $thumbOn);
+  	if(d.cmd == 'shot' || d.cmd == 'push'){
+			var file = d.src.split('/').pop();
+			var carousel = $('#mainCarousel')[0].carousel;
+
+			if(d.skip){
+
+				Pix.send({
+					cmd: 'update',
+					id: carousel.view.id,
+					set: {
+						image: file
+					},
+					collection: Cfg.collection
+				});
+			}
+			else{
+  			var $thumbOn = carousel.$t.children().eq(0);
+  			carousel.include(Pix.parseURL(d.src), $thumbOn);
+			}
   	}
   	else
   	if(d.cmd == 'hideCarousel'){
@@ -257,6 +283,5 @@ chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
   	if(d.cmd == 'checkCarousel'){
   		sendResponse({visible: $pic.is(':visible')});
   	}
-  /* Content script action
+  /* Content script action */
 });
-*/

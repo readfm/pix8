@@ -1,0 +1,300 @@
+body{
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#view{
+    clear: both;
+    width: 100%;
+    height: calc(70% - 50px);
+    /* min-height: 100px; */
+}
+
+#youtube{
+    height: 100%;
+    width: 100%;   
+    margin: 0;
+    border: 0; 
+}
+
+#frames{
+    display: none;
+    height: 180px;
+}
+
+#frames > canvas{
+    margin: 0;
+    padding: 0;
+    vertical-align: top;
+    height: 100%;
+}
+
+
+
+#pix8-url{
+   width: 100%;
+   background: transparent;
+   height: 100%;
+   margin: 0;
+   border: 0;
+   color: white;
+}
+
+#gg{
+    height: 100%;
+    width: 100%; 
+    margin: 0;
+    object-fit: contain;
+}
+
+#play, #edit, #save, #game, #resize{
+    float: left;
+    height: inherit;
+    margin: 0;
+    vertical-align: top;
+}
+
+#play{
+    width: 10vw;
+    font-size: 40px;
+    padding: 0;
+}
+
+#play.status-edit{
+    background: rgb(176, 176, 176) linear-gradient(rgb(187, 187, 187), rgb(148, 148, 148));
+}
+
+#play.status-tap{
+    background: rgb(255, 145, 53) linear-gradient(rgb(255, 145, 53), rgb(255, 126, 18));
+}
+
+#play.status-filter{
+    background: #d290de url('search.png') no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+#play.status-play{
+    background: rgb(78, 196, 87) linear-gradient(rgb(75, 179, 102), rgb(42, 199, 40)) no-repeat;
+    background: rgb(78, 196, 87) url('play.png') no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+#play.status-record{
+    background: #FFCA28 url('microphone.png') no-repeat;
+    background-size: 32px;
+    background-position: center;
+}
+
+#edit{
+    display: none;
+    width: 80vw;
+    padding: 5px 8px;
+    font-size: 18px;
+    height: 100%;
+    min-height: 50px;
+    background: rgb(253, 253, 253);
+    border-radius: 0;
+    border: 0;
+    border-right: 1px dashed #ADADAD;
+    transition: background 1s;
+    font-family: monospace;
+    white-space: normal;
+    outline: none;
+}
+
+#save{
+    display: none !important;
+    width: 160px;
+    font-size: 28px;
+}
+
+#resize{
+    width: 10vw;
+    cursor: ns-resize;
+    float: right;
+    /* position: fixed; */
+    background: white url('resize.png') no-repeat center;
+    background-size: 60px;
+    bottom: 0;
+    right: 0;
+}
+
+#resize.loading-youtube{
+    /* background-image: url('youtube.gif'); */
+    background-color: rgba(241, 33, 31, 0.43);
+}
+
+#resize.loading-watson{
+    /* background-image: url('watson.gif'); */
+    background-color: rgba(245, 168, 52, 0.44);
+}
+
+#resize.loading-ggif{
+    /* background-image: url('watson.gif'); */
+    background-color: rgba(45, 68, 252, 0.44);
+}
+
+
+#voice{
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: calc(10% + 5px);
+    min-width: 50px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: rgba(2, 2, 2, 0.9);
+    color: white;
+    font-size: 15px;
+}
+
+
+#textdata{
+    height: 12px;
+    min-height: 4px;
+}
+
+#textdata-area{
+    display: none;
+    width: calc(100% - 10vw);
+    height: calc(100% - 4px);
+    background: #FDFDFD;
+    overflow: auto;
+    padding: 0 5px;
+    border: 0;
+    margin: 0;
+    margin-left: 10vw;
+    white-space: pre;
+    word-wrap: normal;
+}
+
+#textdata-links{
+    display: block;
+    width: calc(100% - 10vw);
+    height: calc(100% - 4px);
+    /* background: #FDFDFD; */
+    overflow: auto;
+    overflow-x: hidden;
+    padding: 0;
+    /* margin-left: 10vw; */
+    /* white-space: pre; */
+    /* word-wrap: normal; */
+}
+
+#textdata-links > div{
+    display: block;
+    position: relative;
+    /* overflow: hidden; */
+    padding-left: calc(10vw + 2px);
+}
+
+#textdata-links > div > a{
+    color: #ADADAD;
+    white-space: nowrap;
+    margin: 0;
+    overflow: hidden;
+    display:inline-block;
+    text-overflow: ellipsis;
+    font-family: monospace;
+    width: 80vw;
+}
+
+#textdata-links > div > .thumb{
+    display: none;
+    width: 10vw;
+    height: 150px;
+    position: absolute;
+    background-position: top left;
+    background-size: contain;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#textdata-links > div > a:hover + .thumb{
+    display: block;
+}
+
+#textdata-resize{
+    /* cursor: ns-resize; */
+    background: rgba(200,200,200,0.5);
+    height: 4px;
+    width: 100%;
+    border: 0;
+    margin: 0;
+}
+
+#cover{
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: none;
+}
+
+
+#pix8-toggle{
+    position: absolute;
+    z-index: 90;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.8) url('logo48.png') no-repeat center;
+    border-radius: 3px;
+    background-size: 16px 16px;
+}
+
+
+#auth-open{
+    position: absolute;
+    display: none;
+    z-index: 99999999999999999;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: rgba(238, 238, 238, 0.8) url('user.png') no-repeat center;
+    border-radius: 49px;
+    background-size: cover;
+}
+
+
+#ggif-frame{
+    position: fixed;
+    z-index: 40;
+    bottom: 0;
+    left: 0;
+    background-color: white;
+}
+
+
+#pay-openTip{
+    position: absolute;
+    top: 1px;
+    right: 80px;
+    color: white;
+    cursor: pointer;
+}
+
+#pic-context{
+    z-index: 2000;
+    height: auto;
+    z-index: 177;
+}
+
+#pic8-minimize, #pic8-maximize, #pic8-close{
+    float: right;
+}
+
+#browser-window{
+    width: 100%;
+    display: block;
+    flex-grow: 1;
+    border: 0;
+}

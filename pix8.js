@@ -41,8 +41,17 @@ window.Pix8 = {
     var $resize = $("<div id='pic-resize'></div>");
     $resize.appendTo(Pix8.$pic);
 
+    var t = this;
     var $tag = Pix.$tag = Pix8.$tag = $("<input id='pic-tag'/>").appendTo($resize);
     $tag.bindEnter(function(){
+      if(this.value[0] == '+'){
+        var plus = this.value.substr(1).split(':');
+
+        Pix8.onPlus[plus[0]](this.value.substr(this.value.indexOf(':')+1));
+        this.value = '';
+        return;
+      }
+
       var carousel = Pix.carousel(this.value);
       this.value = '';
 
@@ -54,6 +63,11 @@ window.Pix8 = {
 
 
     this.enableInputDrag();
+  },
+
+  onPlus: {},
+  regPlus: function(handler, cb){
+    this.onPlus[handler] = cb;
   },
 
   iniElectron: function(){

@@ -1,0 +1,27 @@
+{
+  "name": "pix8",
+  "version": "0.0.1",
+  "main": "run.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/readfm/pix8.git"
+  },
+  "keywords": [
+    "pix8",
+    "pictures"
+  ],
+  "author": "Duke",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/readfm/pix8/issues"
+  },
+  "homepage": "https://github.com/readfm/pix8#readme",
+  "description": "",
+  "dependencies": {
+    "dat-node": "^3.5.9",
+    "ytdl-core": "^0.20.4"
+  }
+}

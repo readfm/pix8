@@ -1,0 +1,26 @@
+#progress{
+    display: none;
+    position: fixed;
+    bottom: 6px;
+    right: 6px;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background: #ff9900c2;
+    text-align: center;
+    font-weight: bold;
+    padding-top: 10px;
+    font-size: 22px;
+    color: white;
+}
+
+#progress-label{
+    font-size: 18px;
+    color: white;
+}
+
+
+#progress-tasks{
+    font-size: 15px;
+    color: #efefef;
+}

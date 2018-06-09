@@ -13,7 +13,7 @@ window.WS = function(cfg, cb){
 		reconnect_timeout: 4000,
 		progressBar: false
 	}, cfg);
-	
+
 	this.on = {
 		alert: function(msg){
 			alert(msg.text);
@@ -36,8 +36,8 @@ window.WS = function(cfg, cb){
 					var d = {
 						cmd: 'saveStream',
 					};
-					
-					$.extend(d, stream);
+
+					_.extend(d, stream);
 					delete d.callback;
 					delete d.buffer;
 					delete d.pumped;
@@ -66,7 +66,7 @@ window.WS = function(cfg, cb){
 		if(!t.connection || t.connection.readyState > 1)
 			t.connect(cfg);
 	}, cfg.reconnect_timeout);
-	
+
 	t.connect(cfg);
 
 	this.ready = [];
@@ -93,7 +93,7 @@ WS.prototype = {
 		this.connection.onclose = function(){
 			delete Sockets[cfg.name || cfg.server];
 		};
-		
+
 		this.connection.onerror = function(error){
 			console.error(error);
 		};
@@ -107,7 +107,7 @@ WS.prototype = {
 
 	send: function(msg, cb){
 		if(!msg) return;
-		
+
 		if(cb){
 			if(!msg.cb) msg.cb = randomString(15);
 			this.cbs[msg.cb] = cb;
@@ -134,7 +134,7 @@ WS.prototype = {
 				var data = new Uint8Array(length),
 					cur = 0;
 
-				for(i = 0; i < chunks.length; i++){ 
+				for(i = 0; i < chunks.length; i++){
 					data.set(chunks[i], cur);
 					cur += chunks[i].byteLength;
 				}
@@ -143,7 +143,7 @@ WS.prototype = {
 			});
 		});
 	},
-	
+
 	move: function(x,y){
 		var buf = new ArrayBuffer(5),
 			arr = new Uint8Array(buf);
@@ -153,7 +153,7 @@ WS.prototype = {
 		arr[2] = (x & 0x00ff);
 		arr[3] = ((y & 0xff00) >> 8);
 		arr[4] = (y & 0x00ff);
-		
+
 		this.connection.send(buf);
 	},
 
@@ -172,7 +172,7 @@ WS.prototype = {
 				cmd: 'createStream'
 			}, function(r){
 				if(r.name){
-					var stream = ws.stream = $.extend({
+					var stream = ws.stream = _.extend({
 						pumped: 0
 					}, info);
 
@@ -202,7 +202,7 @@ WS.prototype = {
 				}
 			});
 		});
-		
+
 		if(!ws.uploading)
 			ws.tasks.shift()();
 	},
@@ -224,13 +224,13 @@ WS.prototype = {
 	},
 
 	onBuf: function(data){},
-	
+
 	message: function(msg){
 		if(msg.data instanceof ArrayBuffer){
 			this.onBuf(msg.data);
 			return;
 		};
-		
+
 		msg = JSON.parse(msg.data);
 
 		var cb;
