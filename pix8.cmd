@@ -1,1 +1,1 @@
-electron app.js
+electron .

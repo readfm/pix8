@@ -30,8 +30,23 @@ $(function(ev){
 			path: 'pref.yaml'
 		}, r => {
 			window.Pref = r.item || {};
+
+			$(document).trigger('pref');
 		});
 
 		$(document).trigger('connected');
 	}
+});
+
+
+$(document).on('loaded', ev => {
+  Pix8.onPlus.dat = d => {
+    console.log(d);
+    Dats.load(d);
+    W({
+      cmd: 'save',
+      path: 'dats.log',
+      log: d
+    });
+  }
 });

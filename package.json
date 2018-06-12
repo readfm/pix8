@@ -22,6 +22,11 @@
   "description": "",
   "dependencies": {
     "dat-node": "^3.5.9",
+    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "js-yaml": "^3.12.0",
+    "pineal": "C:/Users/user/Desktop/neuro",
+    "read-data": "^1.1.0",
     "ytdl-core": "^0.20.4"
   }
 }
