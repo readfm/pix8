@@ -19,7 +19,6 @@ window.Pix8 = {
     Pix8.initList();
     if(window.isElectron)
       Pix8.iniElectron();
-
   },
 
 	resize: function(){
@@ -159,9 +158,11 @@ window.Pix8 = {
   initSites: function(){
     var $cont = this.$Pix8list_sites = $('<div>', {id: 'pix8list_sites'}).appendTo(this.$Pix8list);
 
-    W({cmd: 'load', path: 'sites.log'}, r => {
-      if(r.item && r.item.length){
-        r.item.forEach(line => {
+    var link = new Link(Me.link+'sites.log');
+    Log(link);
+    link.load(item => {
+      if(item && item.length){
+        item.forEach(line => {
           var l = line.split(' ');
 
           Pix8.addSite(l[0], l[1]);
@@ -185,7 +186,9 @@ window.Pix8 = {
   words: {},
   items: {},
   loadWords: function(id){
-    W({cmd: 'load', path: 'words.log'}, r => {
+    var link = new Link(Me.link+'words.log');
+    Log(link);
+    link.load(item => {
       if(r.item && r.item.length){
         r.item.forEach(line => {
           var l = line.split(' ');

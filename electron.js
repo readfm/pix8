@@ -1,6 +1,7 @@
 window.Electron = require('electron');
 var Remote = window.Remote = Electron.remote;
 window.App = Remote.getGlobal('App');
+//window.App.log = console.log;
 window.Dats = Remote.getGlobal('Dats');
 window.Data = Remote.getGlobal('Data');
 window.W = Remote.getGlobal('W');

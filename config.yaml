@@ -1,0 +1,20 @@
+home_dir: 'C:\Users\user\Desktop\me'
+private_dir: 'C:\Users\user\Desktop\private'
+dats_dir: 'C:\Users\user\Desktop\dat'
+windows:
+  index:
+    openDevTools: true
+    file: "electron.html"
+    maximize: true
+    BrowserWindow:
+      icon: "logo.ico"
+      frame: false
+      show: false
+      titleBarStyle: "hiddenInset"
+      width: 1800
+      height: 300
+      useContentSize: true
+      title: "Pix8"
+      webPreferences:
+        plugins: true
+        blinkFeatures: "OverlayScrollbars"

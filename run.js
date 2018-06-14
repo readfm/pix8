@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const FS = require('fs');
 const JP = require('path').join;
 const Electron = require('electron');
@@ -11,26 +13,19 @@ const Lines = file => {
 }
 
 
-
-global.My_dir = FS.readFileSync('./my_dir.txt');
-
 const Pineal = require('pineal');
-_.extend(global, _.pick(Pineal, 'Dats', 'Link', 'Http', 'W'));
+_.extend(global, _.pick(Pineal, 'Dats', 'Link', 'Http', 'W', 'API'));
 Pineal.init({
-  dats_folder: JP(My_dir, 'dats')
+//  dats_folder: JP(My_dir, 'dats')
 });
 
 
-global.Pref = Read(JP(My_dir, 'pref.yaml'));
-Dats.load(Lines(JP(My_dir, 'dats.log')));
+global.Cfg = {};
 
-
-
-var App = {
+global.App = {
   windows: [],
-  openWindow: function(name){
-    conf = _.extend({}, this.cfg.windows[name]);
-    console.log(conf);
+  openWindow(name){
+    conf = _.extend({}, Cfg.windows[name]);
 
     var allignPath = file => JP(__dirname, file);
     if(conf.BrowserWindow.icon)
@@ -58,10 +53,33 @@ var App = {
     win.on('closed', ev => {
       win = this.windows[name] = null;
     });
+  },
+
+  setup(cfg){
+    if(cfg.private_dir){
+      //Dats.setupFolder(JP(cfg.private_dir, 'dats.log'));
+    }
+
+    if(cfg.dats_dir)
+      Dats.setupFolder(cfg.dats_dir);
+
+    _.extend(Cfg, cfg);
   }
 };
 
-Electron.app.on('ready', () => {
-  App.cfg = require('./app.json');
-  App.openWindow('index');
-});
+API.app = (m, q, re) => {
+  var r = _.pick(App, 'home_link');
+  re(r);
+}
+
+if(Electron.app)
+  Electron.app.on('ready', () => {
+    App.setup(Read('./config.yaml'));
+
+    Dats.open(Cfg.home_dir).then(dat => {
+      App.home_link = 'dat://'+dat.key.toString('hex')+'/';
+
+      console.log();
+      App.openWindow('index');
+    });
+  });

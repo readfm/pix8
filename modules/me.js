@@ -1,5 +1,5 @@
-global.Me = {
-  dir: Path.join(require('os').homedir(), 'Desktop', 'me') || Cfg.Me.dir,
+window.User = window.Me = {
+  //dir: Path.join(require('os').homedir(), 'Desktop', 'me') || Cfg.Me.dir,
 
   init: function(cfg){
     //this.init_ipfs();
@@ -16,3 +16,7 @@ global.Me = {
 
   },
 };
+
+if(window.Remote){
+  $.extend(Me, Remote.getGlobal('Me'));
+}

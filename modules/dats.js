@@ -42,11 +42,19 @@ window.Dats = {
   load: function(folders){
     if(typeof folders == 'string') folders = [folders];
     folders.forEach(folder => {
+      this.open(folder);
+    });
+  }
+
+  open(folder){
+    return new Promise((resolve, reject) => {
       Dat(folder, (err, dat) => {
-        if(err) return;
+        if(err) return reject(err);
         var key = dat.key.toString('hex');
         console.log('Dat #'+key+' '+folder)
         Dats[key] = dat;
+
+        resolve(dat);
       });
     });
   }

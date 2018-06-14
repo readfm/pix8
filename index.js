@@ -14,23 +14,17 @@ $(function(ev){
 
 	S.session = m => {
 		Cookies.set('sid', m.sid);
-		User.id = m.my_id;
-
-		Data.load(User.id).then(item => {
-			User.item = item || {id: User.id};
-
- 			Pix8.init();
-			$(document).trigger('loaded');
-		});
 		//if(m.user) acc.ok(m.user);
 
 
-		W({
-			cmd: 'load',
-			path: 'pref.yaml'
-		}, r => {
-			window.Pref = r.item || {};
+		W({cmd: 'app'}, r => {
+			User.id = Me.link = r.home_link;
 
+			window.Pref = r || {};
+
+			Pix8.init();
+
+			$(document).trigger('loaded');
 			$(document).trigger('pref');
 		});
 
@@ -41,8 +35,8 @@ $(function(ev){
 
 $(document).on('loaded', ev => {
   Pix8.onPlus.dat = d => {
-    console.log(d);
     Dats.load(d);
+
     W({
       cmd: 'save',
       path: 'dats.log',
