@@ -97,15 +97,23 @@ window.Pix8 = {
 
     var carousel = this.carousel;
     link.load(item => {
-      if(!item){
-        item = {
-          url
-        }
-      }
-
       $('#pix8-url').val(url);
       $('#browser-window').attr('src', url);
-      carousel.load(link);
+      carousel.link = link;
+
+      if(item){
+        carousel.load(item);
+      }
+      else{
+        item = {
+          url,
+          owner: Me.link
+        }
+
+        link.save(item).then(r => {
+          carousel.load(item);
+        });
+      }
     });
   },
 

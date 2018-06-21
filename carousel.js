@@ -133,9 +133,8 @@ Carousel.prototype = {
 		var item = {
 			src: url,
 			path: carousel.getPath(),
-			//tag: carousel.$tag.val(),
-			href: document.location.href,
-			owner: User.id,
+			//tag: carousel.$tag.val(),=
+			owner: Me.link,
 			type: 'image'
 		};
 		add = true;
@@ -786,8 +785,8 @@ Carousel.prototype = {
 	getPath: function(path){
 		path = (
 			path ||
-			((this.$tag && !this.$tag.attr('disabled'))?this.$tag.val():'') ||
-			document.location.href
+			((this.$tag && !this.$tag.is(':visible'))?this.$tag.val():'') ||
+			$('#pix8-url').val()
 		);
 
 		var search = 'images.lh';
@@ -824,7 +823,7 @@ Carousel.prototype = {
 	// what goes after @ in tag
 	getOwner: function(){
 		if(this.owner) return this.owner;
-		return User.id;
+		return Me.link;
 		return;
 
 		var path = (
@@ -855,7 +854,7 @@ Carousel.prototype = {
 		if(this.$tag && this.$tag.is(':visible'))
 			view.word = this.$tag.val();
 		else{
-			view.link = this.path;
+			view.link = this.getPath();
 		}
 
 		view.path = carousel.getPath();
@@ -953,7 +952,7 @@ Carousel.prototype = {
 			this.link = a;
 		}else
 		if(typeof a == 'object'){
-			carousel.setView(a);
+			this.setView(a);
 			return;
 		}else
 		if(typeof a == 'string'){
@@ -980,7 +979,7 @@ Carousel.prototype = {
 
 		var word = view.word || view.path;
 		this.$tag.val(word);
-		this.$tag[(word.indexOf('http://')+1 || word.indexOf('https://')+1)?'hide':'show']();
+		this.$tag[view.url?'hide':'show']();
 
 		Items.load(view.items || []).then(items => {
 			carousel.spread(view.items || []);
@@ -1361,7 +1360,7 @@ Carousel.prototype = {
 							path: carousel.getPath(),
 							tag: carousel.$tag.val(),
 							href: document.location.href,
-							gid: User.id,
+							owner: carousel.getOwner(),
 							type: 'image'
 						};
 
@@ -1440,10 +1439,8 @@ Carousel.prototype = {
 
 				carousel.resize($item);
 
-				console.log(item);
 				var reader = new FileReader();
 				reader.onload = function(ev2){
-					console.log(ev2.target.result);
 
 					var ext = lf.name.split('.').pop();
 					var id = randomString(6);
@@ -1454,13 +1451,11 @@ Carousel.prototype = {
 
 						var img = $item.children('img')[0];
 
-						console.log(link);
 						var item = {
 							file: url,
 							width: img.naturalWidth,
 							height: img.naturalHeight,
-							path: carousel.getPath(),
-							tag: carousel.$tag.val(),
+							owner: carousel.getOwner(),
 							type: 'image'
 						};
 
