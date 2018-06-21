@@ -1,1 +1,1 @@
-electron run.js
+node run.js

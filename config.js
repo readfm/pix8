@@ -3,6 +3,8 @@ window.Cfg = {
   host: '127.0.0.1',
   files: 'http://127.0.0.1:5030/items/',
 
+  default_site: 'https://css-tricks.com/',
+
   central: {
     server: 'io.cx'
   },

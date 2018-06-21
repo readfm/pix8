@@ -21,6 +21,50 @@ Number.prototype.between = function(a, b) {
   return this > min && this < max;
 };
 
+(function(){
+    function ScriptExecution(tabId) {
+        this.tabId = tabId;
+    }
+
+    ScriptExecution.prototype.executeScripts = function(fileArray) {
+        fileArray = Array.prototype.slice.call(arguments); // ES6: Array.from(arguments)
+        return Promise.all(fileArray.map(file => exeScript(this.tabId, file))).then(() => this); // 'this' will be use at next chain
+    };
+
+    ScriptExecution.prototype.executeCodes = function(fileArray) {
+        fileArray = Array.prototype.slice.call(arguments);
+        return Promise.all(fileArray.map(code => exeCodes(this.tabId, code))).then(() => this);
+    };
+
+    ScriptExecution.prototype.injectCss = function(fileArray) {
+        fileArray = Array.prototype.slice.call(arguments);
+        return Promise.all(fileArray.map(file => exeCss(this.tabId, file))).then(() => this);
+    };
+
+    function promiseTo(fn, tabId, info) {
+        return new Promise(resolve => {
+            fn.call(chrome.tabs, tabId, info, x => resolve());
+        });
+    }
+
+
+    function exeScript(tabId, path) {
+        let info = { file : path, runAt: 'document_end' };
+        return promiseTo(chrome.tabs.executeScript, tabId, info);
+    }
+
+    function exeCodes(tabId, code) {
+        let info = { code : code, runAt: 'document_end' };
+        return promiseTo(chrome.tabs.executeScript, tabId, info);
+    }
+
+    function exeCss(tabId, path) {
+        let info = { file : path, runAt: 'document_end' };
+        return promiseTo(chrome.tabs.insertCSS, tabId, info);
+    }
+
+    window.ScriptExecution = ScriptExecution;
+})();
 
 function getVimeoThumbnail(id, cb){
 	$.ajax({
@@ -59,18 +103,6 @@ String.prototype.url = function(){
 	url = url.replace(/\s+/gi, '-');
 	return url;
 }
-
-
-$.fn.blink = function(cls, time, cb){
-	cls = cls || 'wrong';
-	time = time || 1200;
-	var $el = this.addClass(cls);
-	setTimeout(function(){
-		$el.removeClass(cls);
-		if(cb)cb();
-	},time);
-	return this;
-};
 
 
 function parseQuery(querystring){
@@ -248,6 +280,7 @@ Image.prototype.generateThumb = function(w, h, cb){
   }
 };
 
+/*
 $.fn.uploadImage = function(cfg){
 
   var $file =  $('<input>', {type: 'file'});
@@ -282,7 +315,6 @@ $.fn.uploadImage = function(cfg){
 
   return this;
 };
-
 
 $.fn.upl = function(conf){
 	var cfg = {
@@ -379,6 +411,8 @@ $(document).scroll(function(){
 	$('.tip').hide();
 });
 
+*/
+
 function parseQS(queryString){
 	var params = {}, queries, temp, i, l;
 	if(!queryString || !queryString.split('?')[1]) return {};
@@ -420,7 +454,7 @@ $.fn.bindEnter = function(fn){
 	var el = this;
 	this.bind('keypress', function(e){
 		if(e.keyCode==13){
-			if(fn) fn.call(this);
+			if(fn) fn.call(e);
 			else $(this).blur();
 		}
 	});

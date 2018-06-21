@@ -1,10 +1,10 @@
-#!/usr/bin/env node
-
 const FS = require('fs');
 const JP = require('path').join;
 const Electron = require('electron');
 const Rre = require('electron');
 global._ = require('underscore');
+
+process.chdir(__dirname);
 
 const Read = require('read-data').sync;
 const Lines = file => {
@@ -63,23 +63,38 @@ global.App = {
     if(cfg.dats_dir)
       Dats.setupFolder(cfg.dats_dir);
 
+    require('./preload.js');
+
     _.extend(Cfg, cfg);
+  },
+
+  async init(){
+    App.setup(Read('./config.yaml'));
+
+    let home_dat = await Dats.open(Cfg.home_dir);
+    App.home_link = 'dat://'+home_dat.key.toString('hex')+'/';
+
+    let items_dat = await Dats.open(Cfg.items_dir);
+    App.items_link = 'dat://'+items_dat.key.toString('hex')+'/';
   }
 };
 
 API.app = (m, q, re) => {
-  var r = _.pick(App, 'home_link');
+  var r = _.pick(App, 'home_link', 'items_link');
   re(r);
 }
 
-if(Electron.app)
-  Electron.app.on('ready', () => {
-    App.setup(Read('./config.yaml'));
+App.init();
 
-    Dats.open(Cfg.home_dir).then(dat => {
-      App.home_link = 'dat://'+dat.key.toString('hex')+'/';
-
-      console.log();
-      App.openWindow('index');
-    });
+if(Electron.app){
+  Electron.app.on('ready', async () => {
+    App.openWindow('index');
   });
+
+    // Quit when all windows are closed.
+  Electron.app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      Electron.app.quit()
+    }
+  });
+}

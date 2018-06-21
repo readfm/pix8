@@ -40,7 +40,7 @@ window.Central = {
         view.tag = path;
         var ids = [];
 
-        Data.save(view);
+        var link = new Link(Pix8.sites_link+md5(url)+'.yaml');
 
         if(view.items)
           Central.W({

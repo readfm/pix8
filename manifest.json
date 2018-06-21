@@ -1,6 +1,14 @@
 {
    "background": {
-      "scripts": [ "cfg.js", "lib/underscore.js", "lib/functions.js", "ws.js", "background.js" ]
+      "scripts": [
+        "config.js",
+        "libs/underscore.js",
+        "libs/jquery.js",
+        "libs/underscore.js",
+        "libs/functions.js",
+        "modules/ws.js",
+        "background.js"
+      ]
    },
    "browser_action": {
       "default_icon": "menu38.png"
@@ -24,5 +32,5 @@
      "http://*/*", "https://*/*"
    ],
    "short_name": "Social pictures",
-   "version": "3.1.14"
+   "version": "3.1.15"
 }

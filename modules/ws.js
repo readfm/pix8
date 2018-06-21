@@ -1,6 +1,7 @@
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 
 var Sockets = window.Sockets = {};
+const extend = window.$?window.$.extend:_.extend;
 
 window.WS = function(cfg){
 	var t = this;
@@ -8,7 +9,7 @@ window.WS = function(cfg){
 	if(typeof cfg == 'string')
 		cfg = {server: cfg};
 
-	$.extend(t, {
+	extend(t, {
 		autoReconnect: false,
 		reconnect_timeout: 25000
 	}, cfg);
@@ -23,8 +24,8 @@ window.WS = function(cfg){
 			if(msg.b){
 				if(stream.buffer.byteLength > msg.b){
 					var perc = Math.round(100 * msg.b / stream.buffer.byteLength);
-					$('#progress').show();
-					$('#progress-label').text(perc+'%');
+					//$('#progress').show();
+					//$('#progress-label').text(perc+'%');
 
 					stream.pumped = msg.b;
 					t.pump();
@@ -34,13 +35,13 @@ window.WS = function(cfg){
 						cmd: 'saveStream',
 					};
 
-					$.extend(d, stream);
+					extend(d, stream);
 					delete d.callback;
 					delete d.buffer;
 					delete d.pumped;
 
 					t.send(d, function(r){
-						$('#progress').hide();
+						//$('#progress').hide();
 
 						t.uploading = false;
 
@@ -164,35 +165,37 @@ WS.prototype = {
 		var numTasks = this.tasks.length;
 		this.tasks.push(function(){
 			ws.uploading = true;
-			ws.send({
+			var q = {
 				cmd: 'createStream'
-			}, function(r){
-				if(r.name){
-					var stream = ws.stream = $.extend({
-						pumped: 0
-					}, info);
+			};
+			extend(q, info);
+			ws.send(q, function(r){
+				var stream = ws.stream = extend({
+					pumped: 0
+				}, info);
 
-					$('#progress').attr('title', info?(info.name || ''):'');
-					$('#progress-tasks').text('~'+ws.tasks.length);
+				/*
+				$('#progress').attr('title', info?(info.name || ''):'');
+				$('#progress-tasks').text('~'+ws.tasks.length);
+				*/
 
-					if(typeof cb == 'function')
-						stream.callback = cb;
+				if(typeof cb == 'function')
+					stream.callback = cb;
 
-					if(typeof buffer == 'string')
-						buffer = new Blob([buffer], { type: "text/plain" });
+				if(typeof buffer == 'string')
+					buffer = new Blob([buffer], { type: "text/plain" });
 
-					if(buffer instanceof Blob){
-          				var fileReader = new FileReader();
-         				fileReader.onload = function(){
-							stream.buffer = this.result;
-							ws.pump();
-         				}
-         				fileReader.readAsArrayBuffer(buffer);
-					}
-					else{
-						stream.buffer = buffer;
+				if(buffer instanceof Blob){
+        	var fileReader = new FileReader();
+       		fileReader.onload = function(){
+						stream.buffer = this.result;
 						ws.pump();
-					}
+       		}
+       		fileReader.readAsArrayBuffer(buffer);
+				}
+				else{
+					stream.buffer = buffer;
+					ws.pump();
 				}
 			});
 		});

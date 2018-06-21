@@ -3,10 +3,6 @@
     max-height: 100vh;
 }
 
-body{
-    background-color: rgb(82, 82, 82);;
-}
-
 #pix8-title{
     n-webkit-user-select: none;
     n-webkit-app-region: drag;
@@ -14,4 +10,10 @@ body{
 
 #pic-tag{
     /* cursor: text; */
+}
+
+body{
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }

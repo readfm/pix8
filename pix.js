@@ -64,8 +64,9 @@ var pix = Pix = {
 
 	},
 
-	build: item => {
-		var elem = new Elem(item);
+	build: (item, url) => {
+		console.log(item, url);
+		var elem = new Elem(item, {url});
 		$(elem.$item).dblclick(ev => {
 			require('opn')(elem.item.src);
 		});
@@ -423,12 +424,34 @@ var pix = Pix = {
 	},
 
 	leaveGap: function(px){
+		if(window.Electron) return;
+
+		if(!px) px = Pix.height();
+
+		/*
+		if(window.chrome && window.chrome.runtime){
+			$('#pic').css('margin-top', -px+'px');
+			Pix.transform(px);
+			return;
+		}
+		*/
+
 		Pix.$fixed.each(function(){
 			var $el = $(this);
 			$el.css('top', $el.data('_pix8-top') + px);
 		});
 
 		$('body').css('margin-top', Pix.marginBody + px);
+	},
+
+	height(){
+		var h = $('#pix8-header').height();
+
+		$('#pic > .carousel:visible').each(function(){
+			h += this.clientHeight;
+		});
+
+		return h;
 	},
 
 	restoreGap: function(){
@@ -449,7 +472,8 @@ var pix = Pix = {
 			$('<style>', {id: id}).appendTo('body')
 		*/
 
-		$('body').css('tranform', px?('translateY('+px+'px)'):'none');
+		chrome.runtime.sendMessage({cmd: 'resize', height: px});
+		//$('body').css('tranform', px?('translateY('+px+'px)'):'none');
 	},
 
 	checkJquery: function(){

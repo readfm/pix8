@@ -1,9 +1,3 @@
-body{
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
 #view{
     clear: both;
     width: 100%;

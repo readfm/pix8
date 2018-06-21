@@ -24,7 +24,7 @@ var Carousel = function(opt){
 
 	this.$tag = $('<input>', {class: 'carousel-tag'}).appendTo($carousel);
 	this.$tag.bindEnter(function(ev){
-		carousel.onTag(this.value);
+		carousel.load(this.value);
 	});
 
 	$carousel.click(ev => {
@@ -74,10 +74,6 @@ Carousel.prototype = {
 
 		var u = document.location.href.split('@')[1];
 
-
-		console.log(tg);
-		console.log('U: ', u);
-
 		if(typeof u == 'string'){
 			var tgName = tg[0];
 
@@ -89,15 +85,18 @@ Carousel.prototype = {
 			if(!u.length)
 				this.loadPublic(tgName);
 			else
-				this.loadView(id);
+				this.loadView(tgName);
 		}
 		else{
 			this.owner = User.id;
 
 			var id = Pix8.items[tag];
-			if(!id) return;
-			this.loadView(id);
+			this.loadView(tg[0]);
 		}
+	},
+
+	onSite(url){
+
 	},
 
 	//will create an element with all events and puts it into its place
@@ -136,14 +135,15 @@ Carousel.prototype = {
 			path: carousel.getPath(),
 			//tag: carousel.$tag.val(),
 			href: document.location.href,
-			gid: User.id,
+			owner: User.id,
 			type: 'image'
 		};
 		add = true;
 
 		var save = function(){
-			Data.save(item).then(item => {
-				var $item = pix.build(item);
+			var link = new Link(App.items_link + randomString(6) + '.yaml');
+			link.save(item).then(() => {
+				var $item = pix.build(item, link.url);
 
 				if($thumbOn && $thumbOn.length)
 					$item.insertBefore($thumbOn);
@@ -186,13 +186,9 @@ Carousel.prototype = {
 				item.width = img.width;
 				item.height = img.height;
 
-				console.log(item);
-
-
-				Data.download(url).then(id => {
-					item.file = id;
-					console.log(id);
-					console.log(item);
+				var link = new Link(App.items_link + randomString(6))
+				link.download(url).then(() => {
+					item.file = link.url;
 					save();
 				});
 			}, 500);
@@ -765,6 +761,16 @@ Carousel.prototype = {
 		return ids;
 	},
 
+	// return an array of identificators about each unique item
+	getLinks: function(){
+		var ids = [];
+		this.$t.children('.thumb:not(.clone,.drag)').each(function(){
+			var url = $(this).attr('name');
+			if(url) ids.push(url);
+		});
+		return ids;
+	},
+
 	saveList: function(){
 		console.log(this.list());
 		//chrome.storage.local.set({pic: this.list()});
@@ -841,10 +847,16 @@ Carousel.prototype = {
 	saveView: function(view){
 		var carousel = this;
 		if(!view) view = {
-			items: this.getIds(),
-			type: 'view',
-			tag: this.$tag.val()
+	//	items: this.getIds(),
+			items: this.getLinks(),
+			type: 'view'
 		};
+
+		if(this.$tag && this.$tag.is(':visible'))
+			view.word = this.$tag.val();
+		else{
+			view.link = this.path;
+		}
 
 		view.path = carousel.getPath();
 
@@ -857,10 +869,11 @@ Carousel.prototype = {
 		console.log(view);
 		if(!view.items || !view.items.length) return;
 
-		Data.save(view).then(view => {
+		//var url = App.home_link + 'words/' + view.tag + '.yaml';
+		this.link.save(view).then(item => {
 			console.log(view);
 			carousel.view = view;
-			Pix8.linkView(view);
+		//	Pix8.linkView(view);
 		});
 
 		return view;
@@ -877,22 +890,13 @@ Carousel.prototype = {
 		if(!this.view) return carousel.saveView();
 
 		var set = {
-			items: carousel.getIds()
+			items: carousel.getLinks()
 		};
 
-		var view = $.extend(this.view, set);
-
-		console.log(view);
-
-		Data.save(view);
-	},
-
-	updatePublic: function(){
-		Pix.send({
-			cmd: 'updateView',
-			path: this.getPath(),
-		}, function(r){
-
+		var url = App.home_link + 'words/' + this.view.tag + '.yaml';
+		(this.link || (new Link(url))).update(set).then(view => {
+			console.log(view);
+			this.view = view;
 		});
 	},
 
@@ -924,105 +928,42 @@ Carousel.prototype = {
 	},
 
 	//load sequence of private items and put them into carousel
-	loadView: function(id){
+	loadView: function(path){
+		return this.load(path);
 		var carousel = this;
 		delete carousel.view;
 
 		carousel.$t.children('.thumb').remove();
 
-		console.log('Load view: ', id);
-		Data.load(id).then(item => {
+		console.log('Load view: ', path);
+		this.path = path;
+
+		this.link = Pix8.getLink(path);
+
+		this.link.load(item => {
 			if(!item) return;
 			carousel.setView(item);
 		}, fail => {});
 	},
 
-	//load sequence of public items and put them into carousel
-	loadPublic: function(tag){
-		var filter = {
-			type: 'public',
-			path: this.getPath()
-		};
+	load(a){
+		console.log('Load: ', a);
 
-		var carousel = this;
-		Pix.send({
-			cmd: 'get',
-			filter: filter,
-			collection: Cfg.collection
-		},
-		function(r){
-			if(r.item)
-				carousel.setView(r.item);
-			else
-			if(	true ||
-				!carousel.$t.children().length ||
-				carousel.fillPath != filter.path
-				//(carousel.view && carousel.view.path != filter.path
-			)
-				carousel.fill(carousel.getPath());
-
-			delete carousel.view;
-		});
-	},
-
-	// load another view and add images to the beggining
-	fetchView: function(path){
-		var filter = {
-			path: path,
-			owner: this.getOwner(),
-			type: 'view'
+		if(a instanceof Link){
+			this.link = a;
+		}else
+		if(typeof a == 'object'){
+			carousel.setView(a);
+			return;
+		}else
+		if(typeof a == 'string'){
+			this.link = Pix8.getLink(a);
 		}
 
-		var carousel = this;
-
-		return new Promise(function(resolve, reject){
-			Pix.send({
-				cmd: 'get',
-				filter: filter,
-				collection: Cfg.collection
-			},
-			function(r){
-				if(r.item)
-					resolve(r.item);
-				else{
-					filter.type = 'public';
-					delete filter.owner;
-
-					Pix.send({
-						cmd: 'get',
-						filter: filter,
-						collection: Cfg.collection
-					},
-					function(r){
-						if(r.item)
-							resolve(r.item);
-						else
-							reject();
-					});
-				}
-			});
-		});
-	},
-
-	// add elements to the beggining from another view
-	prependView: function(path){
-		var carousel = this;
-		this.fetchView(path).then(view => {
-			if(!view || !view.items || !view.items.length) return;
-
-			Pix.preload(view.items).then(function(){
-				view.items.slice(0, carousel.cfg.fetchLimit).forEach(function(id){
-					var item = Data.items[id],
-							$item = Pix.build(item);
-
-					carousel.$t.prepend($item);
-					carousel.supportEvents($item);
-				});
-				carousel.resize();
-
-				carousel.updateView();
-			});
-		})
+		this.link.load(item => {
+			if(!item) return this.$t.children('.thumb').remove();
+			this.setView(item);
+		}, fail => {});
 	},
 
 	// give view object with ids and load from DB info about each new items
@@ -1036,40 +977,16 @@ Carousel.prototype = {
 		//Pix.checkJquery();
 
 		carousel.$t.children('.thumb').remove();
-		Data.load(view.items).then(function(items){
-			console.log(items);
+
+		var word = view.word || view.path;
+		this.$tag.val(word);
+		this.$tag[(word.indexOf('http://')+1 || word.indexOf('https://')+1)?'hide':'show']();
+
+		Items.load(view.items || []).then(items => {
 			carousel.spread(view.items || []);
 		});
 
 		//Pix.cleanTargets();
-	},
-
-
-	loadRecent: function(filter){
-		if(!filter) filter = {
-			gid: User.id
-		};
-
-		var carousel = this;
-		Pix.send({
-			cmd: 'load',
-			filter: filter,
-			sort: {
-				time: -1
-			},
-			limit: 32,
-			collection: Cfg.collection
-		}, function(r){
-			var ids = [];
-			carousel.view = false;
-			carousel.$t.children('.thumb').remove();
-			(r.items || []).forEach(function(item){
-				Data.items[item.id] = item;
-				ids.push(item.id);
-			});
-
-			carousel.spread(ids);
-		})
 	},
 
 	// if not enogh items inside carousel then load some more from google images.
@@ -1097,7 +1014,6 @@ Carousel.prototype = {
 
 				var img = new Image();
 				img.onload = function(){
-
 					if(
 						Cfg.collector.minWidth > img.width ||
 						Cfg.collector.minHeight > img.height
@@ -1195,22 +1111,23 @@ Carousel.prototype = {
 	// put all the stuff into carousel
 	spread: function(srcs, cf){
 		var carousel = this;
-		srcs.forEach(function(id, i){
-			carousel.push(id);
+		srcs.forEach(function(link, i){
+			carousel.push(link);
 		});
 
 		//pix.cleanTargets();
 	},
 
 	// inset alreadey loaded image
-	push: function(id){
+	push: function(link){
 		var $item;
 
-		var item = Data.items[id];
+		console.log(link)
+		var item = Items[link];
 		console.log(item);
 		if(!item) return;
 
-		$item = pix.build(item);
+		$item = pix.build(item, link);
 
 		this.$t.append($item);
 
@@ -1527,15 +1444,19 @@ Carousel.prototype = {
 				var reader = new FileReader();
 				reader.onload = function(ev2){
 					console.log(ev2.target.result);
-					Data.saveFile(ev2.target.result).then(file => {
-						if(!file || !file.id) return $item.remove();
-						var id = file.id;
+
+					var ext = lf.name.split('.').pop();
+					var id = randomString(6);
+
+					var url = App.items_link + id + '.' + ext;
+					(new Link(url)).save(ev2.target.result).then(() => {
+						//if(!file || !file.id) return $item.remove();
 
 						var img = $item.children('img')[0];
 
+						console.log(link);
 						var item = {
-							src: Cfg.files + id,
-							file: id,
+							file: url,
 							width: img.naturalWidth,
 							height: img.naturalHeight,
 							path: carousel.getPath(),
@@ -1543,11 +1464,12 @@ Carousel.prototype = {
 							type: 'image'
 						};
 
-						Data.save(item).then(item => {
+						var link = new Link(App.items_link + id + '.yaml');
+						link.save(item).then(item => {
 							$item.removeClass('uploading');
 							$item.data(item);
 							$item.attr({
-								id: 'image-'+item.id
+								name: link.url
 							});
 
 							carousel.resize($item);

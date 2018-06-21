@@ -11,7 +11,6 @@ chrome.contextMenus.create({
 
 //var ipfs = IpfsApi();
 
-
 window.Pic = {
   integrating: false,
   integrate: function(id){
@@ -22,32 +21,37 @@ window.Pic = {
     Pic.integrating = true;
     new ScriptExecution(null)
       .executeScripts(
-        "lib/jquery.js",
-        "lib/jquery.event.drag.js",
-        "lib/jquery.event.drop.js",
-        "lib/omggif.js"
+        "libs/jquery-2.js",
+        "libs/jquery.event.drag.js",
+        "libs/jquery.event.drop.js",
+        "libs/js.cookie.js",
+        "libs/md5.js",
+        "libs/omggif.js"
       )
       .then(s => s.executeCodes('console.log("libs loaded")'))
       .then(s => s.executeCodes('var User = '+jsonUser+';'))
-      .then(s => s.injectCss("carousel.css"))
-      .then(s => s.injectCss("GG.css"))
-      .then(s => s.injectCss("pix8list.css"))
+      .then(s => s.injectCss("design/carousel.css"))
+      .then(s => s.injectCss("design/layout.css"))
+      .then(s => s.injectCss("design/ext.css"))
       .then(s => s.executeScripts(
-        "cfg.js", "lib/functions.js", "lib/gif.js", "lib/Catalog.js",  "lib/Elem.js", "pix8.js", "pix.js",
-        "carousel.js", "suggest.js", 'GG.js', "run.js"
+        "modules/ws.js",
+        "config.js", "libs/functions.js", "libs/gif.js", "libs/Elem.js",
+        "modules/Link-ws.js", "modules/me.js",
+        "pix8.js", "pix.js", "carousel.js", "index.js", 'modules/ext.js'
       ))
-      .then(s => s.injectCss("ext.css"))
       .then(function(){
          Pic.integrating = false;
       }).then(function(){
         //chrome.tabs.sendMessage(id, {cmd: 'auth', user: Pic.user});
       }).then(cb);
+
     chrome.storage.local.get('height', function(d){
-      Pic.transform(d.height || 100);
+      //Pic.transform(d.height || 100);
     });
   },
 
   transform: function(px){
+    return;
     if(Cfg.fixed) return;
     chrome.tabs.insertCSS(null, {
       code: "body{transform: "+(px?('translateY('+px+'px)'):'none')+"}"
@@ -88,12 +92,12 @@ window.Pic = {
 
 
 var ws = new WS({
-  server: Cfg.server,
+  server: Cfg.host+':'+Cfg.port,
   name: 'main',
   autoReconnect: true
 });
 S = ws.on;
-
+var W = (m, cb) => ws.send(m, cb);
 S.session = function(m){
   //$.cookie('sid', m.sid);
 

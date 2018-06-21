@@ -35,7 +35,7 @@ $.extend(module.prototype, {
 
 		this.file = file;
 
-		var $item = t.$item = $('<span>', {id: 'image-'+(item.id || 'uploading'), class: 'thumb'});
+		var $item = t.$item = $('<span>', {name: this.url, class: 'thumb'});
 		$item.data(item);
 
 		$item[0].elem = this;
@@ -236,11 +236,12 @@ $.extend(module.prototype, {
 		return this.$item;
 	},
 
-	loadFile: function(fid){
+	loadFile: function(url){
 		var t = this;
 
 
-		console.log('File: ', fid);
+
+		var link = new Link(url);
 
 		var image = new Image;
 		image.onload = function(){
@@ -279,7 +280,7 @@ $.extend(module.prototype, {
 			t.$item.append(image);
 		};
 
-		image.src = Cfg.files + fid;
+		image.src = link.http;
 	},
 
 

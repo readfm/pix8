@@ -4,6 +4,9 @@ window.Pix8 = {
 
     }, cfg);
 
+    this.words_link = Me.link+'words';
+    this.sites_link = Me.link+'sites';
+
     if($('#pic').length) return;
 
     var $pic = Pix.$pic = Pix8.$pic = Pix8.$cont = $("<div>", {id: 'pic', class: 'bar'}).prependTo('body');
@@ -12,16 +15,23 @@ window.Pix8 = {
     var $title = $("<div>", {id: 'pic8-title'}).appendTo($header);
     var $url = $('<input>', {placeholder: 'URL', id: 'pix8-url'}).appendTo($title);
     $url.bindEnter(function(ev){
-      $('#browser-window').attr('src', this.value);
+      Pix8.onSite(this.value);
     });
 
     Pix8.initInput();
     Pix8.initList();
-    if(window.isElectron)
+    if(window.isElectron){
       Pix8.iniElectron();
+      Pix8.initBrowser();
+    }
+
+    Pix.leaveGap();
   },
 
 	resize: function(){
+    Pix.leaveGap();
+
+    return;
 		var height = $('#pic').height();
 
     var h = 0;
@@ -36,22 +46,138 @@ window.Pix8 = {
 		//Pix.leaveGap(height);
 	},
 
+  initCarousel(){
+    var carousel = this.carousel = new Carousel({
+			name: 'main site',
+			onAdd: function(url, $thumb){
+				carousel.include(url, $thumb);
+			},
+			preloadLocal: false,
+			preloadGoogle: false
+		});
+
+		carousel.$t.insertAfter('#pix8-header');
+
+		this.onSite(this.getUrl());
+
+		Pix8.resize();
+  },
+
+  preloader_domains: ['preload.lh', 'io.cx', 'th.ai'],
+  getUrl(){
+    var url = document.location.href;
+
+    var loc = document.location;
+
+    if(url.indexOf('file://') === 0){
+      url = Cfg.default_site;
+    }else
+    if(this.preloader_domains.indexOf(loc.hostname) + 1){
+      if(loc.pathname.indexOf('/wiki/') + 1){
+        url = 'https://en.wikipedia.org' + loc.pathname;
+      }
+    }
+
+
+    return url;
+  },
+
+  initBrowser(){
+    var $browser = this.$browser = $('<iframe>', {id: 'browser-window'});
+    $browser.appendTo('body');
+
+    $browser.load(ev => {
+      console.log(ev);
+
+    });
+  },
+
+  onSite(url){
+    var link = this.getLink(url);
+
+    var carousel = this.carousel;
+    link.load(item => {
+      if(!item){
+        item = {
+          url
+        }
+      }
+
+      $('#pix8-url').val(url);
+      $('#browser-window').attr('src', url);
+      carousel.load(link);
+    });
+  },
+
+  getLink(path){
+    var url;
+		if(path.indexOf('dat://') == 0)
+			url = path;
+		else
+		if(path.indexOf('http://') == 0 || path.indexOf('https://') == 0){
+			var site = Pix8.sites[path];
+			if(site)
+				url = site;
+			else
+				url = App.home_link + 'sites/' + md5(path) + '.yaml';
+		}else{
+			url = App.home_link + 'words/' + path + '.yaml';
+    }
+
+		var link = new Link(url);
+		return link;
+  },
+
+  siteLoaded: function(site){
+    var url = ev.target.document.src;
+    var link = new Link(this.sites_link+md5(url)+'.yaml');
+    this.link.load(item => {
+      if(item){
+        this.carousel.link = link;
+        this.carousel.loadView(item);
+      } else{
+        var item = {
+          url,
+          type: 'site',
+          title: ev.target.document.title
+        };
+      }
+    });
+  },
+
   initInput: function(){
-    var $resize = $("<div id='pic-resize'></div>");
+    var $resize = this.$resize = $("<div id='pic-resize'></div>");
     $resize.appendTo(Pix8.$pic);
 
     var t = this;
     var $tag = Pix.$tag = Pix8.$tag = $("<input id='pic-tag'/>").appendTo($resize);
+    $tag.focus(ev => {
+      $resize.addClass('focus');
+    }).blur(ev => {
+      $resize.removeClass('focus');
+    });
+
     $tag.bindEnter(function(){
       if(this.value[0] == '+'){
-        var plus = this.value.substr(1).split(':');
 
         Pix8.onPlus[plus[0]](this.value.substr(this.value.indexOf(':')+1));
         this.value = '';
         return;
       }
 
-      var carousel = Pix.carousel(this.value);
+      if(
+        this.value.indexOf('http://') == 0 ||
+        this.value.indexOf('https://') == 0
+      ) {
+        Pix8.onSite(this.value);
+      }
+
+      var carousel = new Carousel({
+      });
+      carousel.$t.insertBefore(t.$resize);
+      Pix8.resize();
+      carousel.load(this.value);
+
       this.value = '';
 
       if(false && window.isElectron)
@@ -59,7 +185,6 @@ window.Pix8 = {
     }).click(function(){
       $tag.focus();
     });
-
 
     this.enableInputDrag();
   },
@@ -103,8 +228,10 @@ window.Pix8 = {
     	var dif = dd.deltaY - dd.done;
     	dd.done = dd.deltaY;
 
-    	var $carousel = $pic.children('.carousel').last(),
-    			carousel = $carousel[0].carousel;
+    	var $carousel = $pic.children('.carousel').last();
+      if(!$carousel.length) return;
+
+      var carousel = $carousel[0].carousel;
 
     	var height = $carousel.height() + dif;
     	if(height){
@@ -123,19 +250,11 @@ window.Pix8 = {
     });
   },
 
-  linkView: function(view){
+  logSite: function(link, site){
     if(!view.path) return;
     if(view.path.indexOf('file://') + 1) return;
 
-    var filePath = (view.path.indexOf('http') == 0)?'sites.log':'words.log';
-    W({
-      cmd: 'save',
-      path: filePath,
-      log: view.id + ' ' + view.path
-    }, r => {
-      this.items[view.path] = view.id;
-      this['add' + ((view.path.indexOf('http') == 0)?'Site':'Tag')](view.id, view.path);
-    });
+    (new Link(Me.link)).log(link +' '+ site);
   },
 
   initList: function(){
@@ -145,8 +264,8 @@ window.Pix8 = {
       $cont.toggle();
     }).html("&#8803").prependTo(Pix8.$header);
 
-    this.initSites();
     this.initWords();
+    this.initSites();
   },
 
   initWords: function(){
@@ -158,22 +277,20 @@ window.Pix8 = {
   initSites: function(){
     var $cont = this.$Pix8list_sites = $('<div>', {id: 'pix8list_sites'}).appendTo(this.$Pix8list);
 
-    var link = new Link(Me.link+'sites.log');
-    Log(link);
-    link.load(item => {
+    return;
+    this.sites_link.load(item => {
       if(item && item.length){
         item.forEach(line => {
           var l = line.split(' ');
 
-          Pix8.addSite(l[0], l[1]);
+          Pix8.addSite(l[0]);
         });
       }
     });
   },
 
-  addSite: function(id, text){
-    this.sites[text] = id;
-    this.items[text] = id;
+  addSite: function(link, url){
+    this.sites[url] = link;
 
     var $item = $('<a>', {href: text});
     $item.text(text).data({id, text});
@@ -185,34 +302,32 @@ window.Pix8 = {
   sites: {},
   words: {},
   items: {},
+
   loadWords: function(id){
-    var link = new Link(Me.link+'words.log');
-    Log(link);
-    link.load(item => {
-      if(r.item && r.item.length){
-        r.item.forEach(line => {
-          var l = line.split(' ');
+    var link = new Link(this.words_link);
+    console.log(this.words_link);
+    console.log(link);
+    link.list(items => {
+      (items || []).forEach(name => {
+        var word = name.split('.')[0];
 
-          Pix8.addTag(l[0], l[1]);
-        });
-      }
+        Pix8.addTag(word);
+      });
 
-      Pix.carousel(Cfg.name || 'pix8');
+      Pix8.initCarousel();
 
       Pix8.resize();
     });
   },
 
-  addTag: function(id, text){
-    var $item = this.buildTag(id, text);
-    this.words[text] = id;
-    this.items[text] = id;
+  addTag: function(word){
+    var $item = this.buildTag(word);
     $('#pix8list_words').prepend($item);
   },
 
-  buildTag: function(id, text){
+  buildTag: function(word){
     var $item = $('<a>');
-    $item.text(text).data({id, text});
+    $item.text(word);
     $item.click(ev => Pix8.clickTag(ev));
     return $item;
   },
@@ -220,11 +335,10 @@ window.Pix8 = {
   clickTag: function(ev){
     ev.preventDefault();
 
-
-    var item = $(ev.target).data();
+    var text = $(ev.target).text();
 
     var carousel = new Carousel({
-      name: item.text,
+      name: text,
     });
 
     this.$Pix8list.hide();
@@ -232,12 +346,12 @@ window.Pix8 = {
   	var $carouselLast = $('#pic > .carousel').last();
 
     carousel.$t.insertAfter($carouselLast[0] || $('#pix8-header'));
-    carousel.onTag(item.text);
+    carousel.load(text);
     Pix8.resize();
 
 
-    if(item.text.indexOf('http') == 0)
-      $('#pix8-url').val(item.text);
+    if(text.indexOf('http') == 0)
+      $('#pix8-url').val(text);
   },
 
   addWord: function(){

@@ -18,6 +18,7 @@ $(function(ev){
 
 
 		W({cmd: 'app'}, r => {
+			window.App = r;
 			User.id = Me.link = r.home_link;
 
 			window.Pref = r || {};
