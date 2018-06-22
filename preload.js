@@ -147,6 +147,7 @@ site.onRequest = function(q, doc){
 				<link href="`+home+`/design/interface.css" rel="stylesheet">
 				<link href="`+home+`/design/ext.css" rel="stylesheet">
 				<script src="`+home+`/modules/interface.js"></script>
+				<script src="`+home+`/modules/central.js"></script>
 				<script src="`+home+`/modules/ext.js"></script>
 				<link href="`+home+`/design/carousel.css" rel="stylesheet">
 				<script src="`+home+`/carousel.js"></script>

@@ -40,7 +40,15 @@ window.Central = {
         view.tag = path;
         var ids = [];
 
-        var link = new Link(Pix8.sites_link+md5(url)+'.yaml');
+        console.log(path);
+    		if(view.path.indexOf('http://')==0 || view.path.indexOf('https://')==0){
+            	var link = new Link(Pix8.sites_link+'/'+md5(path)+'.yaml');
+            	view.url = path;
+    		}
+    		else{
+            	var link = new Link(Pix8.words_link+'/'+path+'.yaml');
+    			view.word = path;
+    		}
 
         if(view.items)
           Central.W({
@@ -51,13 +59,23 @@ window.Central = {
             collection: 'pix8'
           }, function(r){
             var ids = [];
-            (r.items || []).forEach(item => {
-              if(item.file) console.log('File:', item.file);
-              Data.save(item);
-            });
+            var item_links = [];
 
-            Pix8.linkView(view);
-            console.log('Saved: ', view.tag);
+            if(r.items)
+              r.items.forEach(item => {
+              	item_links.push(App.items_link + item.id + '.yaml');
+
+              	if(item.file)
+              		item.file = App.items_link + item.file;
+
+                  item.owner = Me.link;
+          		  (new Link(App.items_link+item.id+'.yaml')).save(item)
+              });
+
+            view.items = item_links;
+            view.owner = Me.link;
+			      link.save(view);
+            console.log(view);
 
             resolve();
           });

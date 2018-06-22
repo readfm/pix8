@@ -87,7 +87,8 @@ API.app = (m, q, re) => {
 App.init();
 
 if(Electron.app){
-  Electron.app.on('ready', async () => {
+  Electron.app.on('ready', () => {
+
     App.openWindow('index');
   });
 
