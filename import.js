@@ -118,7 +118,8 @@ Central.init();
 Central.connect('mongodb://io:kla@io.cx:27017/ggif?authMode=scram-sha1').then(dbo => {
   console.log('mongo connected');
 
-  Central.items({time: {$gt: (new Date('2018-04-01')).getTime()}});
+  var fltr = {time: {$gt: (new Date('2018-04-01')).getTime()}};
+  Central.items({});
 });
 
 
