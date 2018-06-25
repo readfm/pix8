@@ -107,7 +107,8 @@ window.Pix8 = {
       else{
         item = {
           url,
-          owner: Me.link
+          owner: Me.link,
+      		time: (new Date()).getTime()
         }
 
         link.save(item).then(r => {

@@ -3,22 +3,24 @@ window.Items = {
     return new Promise((ok, no) => {
       var left = list.length;
       var items = [];
-      (list || []).forEach(async function(url){
+      (list || []).forEach(function(url){
         if(Items[url]){
-          items.push(Items[url]);
           left--;
+          items.push(Items[url]);
 
           if(!left) ok(items);
           return;
         };
 
         var link = new Link(url);
-        var item = Items[url] = await link.load2Promise();
-        console.log(item);
-        left--;
-        items.push(item);
+        var item = Items[url] = link.load(item => {
+          left--;
 
-        if(!left) ok(items);
+          items.push(item);
+
+          console.log(left);
+          if(!left) ok(items);
+        });
       });
     });
   }

@@ -134,6 +134,7 @@ Carousel.prototype = {
 			src: url,
 			path: carousel.getPath(),
 			//tag: carousel.$tag.val(),=
+			time: (new Date()).getTime(),
 			owner: Me.link,
 			type: 'image'
 		};
@@ -848,7 +849,8 @@ Carousel.prototype = {
 		if(!view) view = {
 	//	items: this.getIds(),
 			items: this.getLinks(),
-			type: 'view'
+			type: 'view',
+			time: (new Date()).getTime()
 		};
 
 		if(this.$tag && this.$tag.is(':visible'))
@@ -889,7 +891,8 @@ Carousel.prototype = {
 		if(!this.view) return carousel.saveView();
 
 		var set = {
-			items: carousel.getLinks()
+			items: carousel.getLinks(),
+			updated: (new Date()).getTime()
 		};
 
 		var url = App.home_link + 'words/' + this.view.tag + '.yaml';
@@ -1456,6 +1459,7 @@ Carousel.prototype = {
 							width: img.naturalWidth,
 							height: img.naturalHeight,
 							owner: carousel.getOwner(),
+			    		time: (new Date()).getTime(),
 							type: 'image'
 						};
 
@@ -1514,6 +1518,7 @@ Carousel.prototype = {
 					tag: carousel.$tag.val(),
 					href: document.location.href,
 					gid: User.id,
+	    		time: (new Date()).getTime(),
 					type: 'image'
 				};
 
