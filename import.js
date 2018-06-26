@@ -84,6 +84,7 @@ var Central = {
         path = JP(Cfg.items_dir, item.id + '.yaml');
       }
 
+      
       var content = YAML.safeDump(item, Central.yaml_cfg);
       //console.log(Chalk.green(path));
       try {

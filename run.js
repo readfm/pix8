@@ -20,7 +20,7 @@ Pineal.init({
 });
 
 
-global.Cfg = {};
+var Cfg = {};
 
 global.App = {
   windows: [],

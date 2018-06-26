@@ -1,7 +1,7 @@
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 
 var Sockets = window.Sockets = {};
-const extend = window.$?window.$.extend:_.extend;
+var extend = window.$?window.$.extend:_.extend;
 
 window.WS = function(cfg){
 	var t = this;
