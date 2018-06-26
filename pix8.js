@@ -120,11 +120,21 @@ window.Pix8 = {
 
   getLink(path){
     var url;
+
 		if(path.indexOf('dat://') == 0)
 			url = path;
 		else
 		if(path.indexOf('http://') == 0 || path.indexOf('https://') == 0){
 			var site = Pix8.sites[path];
+
+      var s = '/wiki/';
+      if(path.indexOf(s)+1){
+        var word = path.substr(path.indexOf(s) + s.length).split('/')[0].toLowerCase();
+        //console.log();
+        //console.log(word);
+    		url = App.home_link + 'words/' + word + '.yaml';
+      }
+      else
 			if(site)
 				url = site;
 			else
