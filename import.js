@@ -26,17 +26,20 @@ var Central = {
     });
   },
 
+  saved: 0,
   items(filter = {}){
     // id: {$in: ids}
 
     var cur = this.dbo.collection("pix8")
-      .find(filter);
+      .find(filter)
+      .sort({time: -1});
 
     cur.count((err, num) => {
       console.log(num);
     });
 
     cur.each(function(err, item){
+      Central.saved++;
       if(err) return console.log(Chalk.red(err));
       if(!item) return;
 
@@ -118,7 +121,7 @@ Central.init();
 Central.connect('mongodb://io:kla@io.cx:27017/ggif?authMode=scram-sha1').then(dbo => {
   console.log('mongo connected');
 
-  var fltr = {time: {$gt: (new Date('2018-04-01')).getTime()}};
+  var fltr = {time: {$gt: (new Date('2016-01-01')).getTime()}};
   Central.items({});
 });
 
