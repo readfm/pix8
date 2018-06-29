@@ -24,7 +24,6 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "dat-node": "^3.5.9",
-    "electron": "^2.0.3",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "js-yaml": "^3.12.0",
