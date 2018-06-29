@@ -1,7 +1,10 @@
 const FS = require('fs');
 const JP = require('path').join;
-const Electron = require('electron');
-const Rre = require('electron');
+
+var Electron;
+if(process.versions['electron'])
+  Electron = require('electron');
+
 global._ = require('underscore');
 
 process.chdir(__dirname);
@@ -20,7 +23,7 @@ Pineal.init({
 });
 
 
-var Cfg = {};
+const Cfg = Read(JP(__dirname, 'config.yaml'));
 
 global.App = {
   windows: [],
@@ -68,18 +71,14 @@ global.App = {
     _.extend(Cfg, cfg);
   },
 
-  async init(){
-    App.setup(Read('./config.yaml'));
+  init(){
+    console.log('Initiate');
+    if(Cfg.storage.dats)
+      Dats.setupFolder(Cfg.storage.dats);
 
-    let home_dat = await Dats.open(Cfg.home_dir);
-    App.home_link = 'dat://'+home_dat.key.toString('hex')+'/';
-
-    let items_dat = await Dats.open(Cfg.items_dir);
-    App.items_link = 'dat://'+items_dat.key.toString('hex')+'/';
-
-
-    let wiki_dat = await Dats.open(Cfg.wiki_dir);
-    App.wiki_link = 'dat://'+wiki_dat.key.toString('hex')+'/';
+    this.home_link = 'dat://'+Dats.key(Cfg.storage.home)+'/';
+    this.items_link = 'dat://'+Dats.key(Cfg.storage.items)+'/';
+    this.wiki_link = 'dat://'+Dats.key(Cfg.storage.wiki)+'/';
   }
 };
 
@@ -90,7 +89,10 @@ API.app = (m, q, re) => {
 
 App.init();
 
-if(Electron.app){
+require('./preload.js');
+
+
+if(process.versions['electron'] && Electron.app){
   Electron.app.on('ready', () => {
 
     App.openWindow('index');

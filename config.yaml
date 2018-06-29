@@ -1,8 +1,9 @@
-home_dir: 'C:\Users\user\Desktop\8\me'
-private_dir: 'C:\Users\user\Desktop\private'
-items_dir: 'C:\Users\user\Desktop\8\items'
-dats_dir: 'C:\Users\user\Desktop\dat'
-wiki_dir: 'C:\Users\user\Desktop\8\wiki'
+storage:
+  home: 'C:\Users\user\Desktop\8\me'
+  private: 'C:\Users\user\Desktop\private'
+  items: 'C:\Users\user\Desktop\8\items'
+  dats: 'C:\Users\user\Desktop\dat'
+  wiki: 'C:\Users\user\Desktop\8\wiki'
 windows:
   index:
     openDevTools: true

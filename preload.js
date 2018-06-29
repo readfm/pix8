@@ -23,7 +23,6 @@ site.load('index.html');
 
 
 site.onRequest = function(q, doc){
-	console.log(q);
 	if(q.req.headers['user-agent'].indexOf('bot')+1)
 		return q.res.end();
 
@@ -123,7 +122,7 @@ site.onRequest = function(q, doc){
 
 		$('head').append(`<base href="`+protocol+`://`+host+`">`);
 
-		var home = (q.host.indexOf('.lh')+1)?'http://pix8.lh':'http://pix8.co';
+		var home = (q.host.indexOf('.lh')+1)?'http://pix8.lh:5030':'http://pix8.co';
 		console.log(home);
 
 		$('head').append(`
@@ -147,7 +146,6 @@ site.onRequest = function(q, doc){
 			<link href="`+home+`/design/ext.css" rel="stylesheet">
 			<script src="`+home+`/modules/interface.js"></script>
 			<script src="`+home+`/modules/central.js"></script>
-			<script src="`+home+`/modules/ext.js"></script>
 			<link href="`+home+`/design/carousel.css" rel="stylesheet">
 			<script src="`+home+`/carousel.js"></script>
 			<script src="`+home+`/pix.js"></script>
@@ -163,6 +161,7 @@ site.onRequest = function(q, doc){
 	if(host == 'en.wikipedia.org'){
 		var html_link = new Link(App.wiki_link + word + '.html');
 		html_link.load(doc => {
+			console.log(doc);
 			if(doc){
 				console.log('loaded link: '+path);
 				var $ = interpret(doc);

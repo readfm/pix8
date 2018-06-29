@@ -77,8 +77,16 @@ window.Pix8 = {
       url = Cfg.default_site;
     }else
     if(this.preloader_domains.indexOf(loc.hostname) + 1){
-      if(loc.pathname.indexOf('/wiki/') + 1){
-        url = 'https://en.wikipedia.org' + loc.pathname;
+    	let uri = document.location.pathname.replace(/^\/+|[^A-Za-z0-9_.:\/~ @-]|\/+$/g, '');
+    	var p = uri.split(/[\/]+/);
+      var word = p.shift();
+
+      if(word == 'http' || word == 'https')
+        url = word+'://'+p.join('/');
+      else
+      if(!p[0]){
+        var wword = word.charAt(0).toUpperCase() + word.slice(1);
+        url = 'https://en.wikipedia.org/wiki/' + wword;
       }
     }
 

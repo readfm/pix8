@@ -2,6 +2,5 @@ node_modules
 package-lock.json
 electron
 layout.css
-config.yaml
 update.cmd
 desktop.ini

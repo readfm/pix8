@@ -26,7 +26,7 @@ window.Dats = {
     return new Promise((resolve, reject) => {
       if(this[hash]) return resolve(this[hash]);
 
-      Dat(JP(this.dir, hash), {key: hash, sparse: true}, (err, dat) => {
+      Dat(JP(this.dir, hash), {key: hash, sparse: true, latest: false}, (err, dat) => {
         if(err) return reject();
 
         dat.joinNetwork();
@@ -48,7 +48,7 @@ window.Dats = {
 
   open(folder){
     return new Promise((resolve, reject) => {
-      Dat(folder, (err, dat) => {
+      Dat(folder, {sparse: true, latest: false}, (err, dat) => {
         if(err) return reject(err);
         var key = dat.key.toString('hex');
         console.log('Dat #'+key+' '+folder)
