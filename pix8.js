@@ -28,10 +28,11 @@ window.Pix8 = {
       Pix8.initBrowser();
     }
 
-    Pix.leaveGap();
+    Pix8.resize();
   },
 
 	resize: function(){
+    if(this.$pic.css('position') == 'fixed')
     Pix.leaveGap();
 
     return;

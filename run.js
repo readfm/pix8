@@ -76,11 +76,15 @@ global.App = {
 
     let items_dat = await Dats.open(Cfg.items_dir);
     App.items_link = 'dat://'+items_dat.key.toString('hex')+'/';
+
+
+    let wiki_dat = await Dats.open(Cfg.wiki_dir);
+    App.wiki_link = 'dat://'+wiki_dat.key.toString('hex')+'/';
   }
 };
 
 API.app = (m, q, re) => {
-  var r = _.pick(App, 'home_link', 'items_link');
+  var r = _.pick(App, 'home_link', 'items_link', 'wiki_link');
   re(r);
 }
 
