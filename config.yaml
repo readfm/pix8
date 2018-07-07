@@ -1,3 +1,4 @@
+port: 80
 storage:
   home: 'C:\Users\user\Desktop\8\me'
   private: 'C:\Users\user\Desktop\private'
