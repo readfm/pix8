@@ -1065,10 +1065,11 @@ Carousel.prototype = {
 			var parts = url.replace(/^(https?|ftp):\/\//, '').split('/'),
 				ext = ''+url.split('.').pop();
 
+
 			if(['jpg', 'jpeg', 'gif', 'png'].indexOf(ext)+1)
 				return url;
 
-			return 'http://i.imgur.com/'+parts[1]+'.jpg';
+			return 'http://i.imgur.com/'+parts[2]+'.jpg';
 		}
 		else
 		if(url.indexOf('upload.wikimedia.org')+1 && url.indexOf('/thumb/')+1){

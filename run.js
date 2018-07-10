@@ -15,15 +15,15 @@ const Lines = file => {
   return content.split(/\r?\n/);
 }
 
+const Cfg = Read(JP(__dirname, 'config.yaml'));
 
 const Pineal = require('pineal');
 _.extend(global, _.pick(Pineal, 'Dats', 'Link', 'Http', 'W', 'API'));
-Pineal.init({
+Pineal.init(Cfg);
 //  dats_folder: JP(My_dir, 'dats')
-});
 
 
-const Cfg = Read(JP(__dirname, 'config.yaml'));
+
 
 global.App = {
   windows: [],

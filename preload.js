@@ -16,7 +16,7 @@ site_pix8.load('index.html');
 
 var site = new Site({
 	path: __dirname,
-	domains: ['preload.lh', 'th.ai']
+	domains: ['8', 'm', 'm8', 'preload.lh', 'th.ai']
 });
 
 site.load('index.html');
@@ -122,7 +122,9 @@ site.onRequest = function(q, doc){
 
 		$('head').append(`<base href="`+protocol+`://`+host+`">`);
 
-		var home = (q.host.indexOf('.lh')+1)?'http://pix8.lh:5030':'http://pix8.co';
+		$('#content').css('margin', 0).siblings().remove();
+
+		var home = (q.host.indexOf('.lh')+1 || (q.host == 'm'))?'http://pix8.lh':'http://pix8.co';
 		console.log(home);
 
 		$('head').append(`
@@ -160,6 +162,7 @@ site.onRequest = function(q, doc){
 
 	if(host == 'en.wikipedia.org'){
 		var html_link = new Link(App.wiki_link + word + '.html');
+		console.log(html_link);
 		html_link.load(doc => {
 			console.log(doc);
 			if(doc){

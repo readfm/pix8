@@ -1,18 +1,30 @@
-var Dat = require('dat-node');
+const Dat = require('dat-node');
 const JP = require('path').join;
+const FS = require('fs');
 
-window.Dats = {
-  dir: JP(require('os').homedir(), 'dats'),
+global.Dat_map = {};
+
+global.Dats = {
+  dir: JP(require('os').homedir(), '.dats'),
   search: dir => {
 
   },
 
-  loadDir: function(dir){
+  init(){
+    this.setupFolder(Cfg.dats_folder || this.dir);
+  },
+
+  setupFolder(dir){
+    this.dir = dir;
+    this.loadDir(dir);
+  },
+
+  loadDir(dir){
     dir = dir || Dats.dir;
     if(FS.existsSync(dir)){
       var dirs = [];
-      FS.readdirSync(p).filter(
-        f => FS.statSync(join(p, f)).isDirectory()
+      FS.readdirSync(dir).filter(
+        f => FS.statSync(JP(dir, f)).isDirectory()
       ).forEach(folder => {
         dirs.push(JP(dir, folder));
       });
@@ -26,33 +38,44 @@ window.Dats = {
     return new Promise((resolve, reject) => {
       if(this[hash]) return resolve(this[hash]);
 
-      Dat(JP(this.dir, hash), {key: hash, sparse: true, latest: false}, (err, dat) => {
+      Dat(JP(this.dir, hash), {key: hash, sparse: true}, (err, dat) => {
         if(err) return reject();
 
         dat.joinNetwork();
 
         var key = dat.key.toString('hex');
-        console.log('Dat #'+key+' '+folder)
         Dats[key] = dat;
         resolve(dat);
       });
     });
   },
 
-  load: function(folders){
+  load(folders){
     if(typeof folders == 'string') folders = [folders];
     folders.forEach(folder => {
       this.open(folder);
     });
-  }
+  },
+
+  key(folder){
+    var key_file = JP(folder, '.dat', 'metadata.key');
+    var key = FS.readFileSync(key_file).toString('hex');
+    Dat_map[key] = folder;
+    return key;
+  },
 
   open(folder){
     return new Promise((resolve, reject) => {
-      Dat(folder, {sparse: true, latest: false}, (err, dat) => {
+      Dat(folder, (err, dat) => {
         if(err) return reject(err);
+
         var key = dat.key.toString('hex');
-        console.log('Dat #'+key+' '+folder)
         Dats[key] = dat;
+
+        if(dat.writable)
+          dat.importFiles({watch: true});
+
+        dat.joinNetwork();
 
         resolve(dat);
       });
@@ -60,7 +83,30 @@ window.Dats = {
   }
 };
 
+process.on('modules_ready', ev => {
+  Http.GET['dat'] = function(q){
+    var prot = q.p.shift(),
+        hash = q.p.shift();
 
+    if(Dat_map[hash]){
+      var cfg = {
+        path: JP(Dat_map[hash], q.p.join('/'))
+      };
+
+      query.pump(q, cfg);
+    } else
+      Dats.get(hash).then(dat => {
+        var cfg = {
+          path: JP(dat.path, q.p.join('/'))
+        };
+
+        query.pump(q, cfg);
+      });
+  };
+});
+
+
+/*
 $(document).on('pref', ev => {
 
 });
@@ -71,15 +117,4 @@ $(document).on('connected', ev => {
       Dats.load(r.item);
   });
 });
-
-$(document).on('loaded', ev => {
-  Pix8.onPlus.dat = d => {
-    console.log(d);
-    Dats.load(d);
-    W({
-      cmd: 'save',
-      path: 'dats.log',
-      log: d
-    });
-  }
-});
+*/

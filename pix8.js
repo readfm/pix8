@@ -67,7 +67,7 @@ window.Pix8 = {
 		Pix8.resize();
   },
 
-  preloader_domains: ['preload.lh', 'io.cx', 'th.ai'],
+  preloader_domains: ['preload.lh', 'io.cx', 'th.ai', 'm', 'm8'],
   getUrl(){
     var url = document.location.href;
 
