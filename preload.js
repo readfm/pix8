@@ -122,6 +122,8 @@ site.onRequest = function(q, doc){
 
 		$('head').append(`<base href="`+protocol+`://`+host+`">`);
 
+		$('#content').css('margin', 0).siblings().remove();
+
 		var home = (q.host.indexOf('.lh')+1 || (q.host == 'm'))?'http://pix8.lh':'http://pix8.co';
 		console.log(home);
 
