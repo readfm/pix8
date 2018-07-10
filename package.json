@@ -28,7 +28,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "js-yaml": "^3.12.0",
     "md5": "^2.2.1",
-    "pineal": "^0.1.9",
+    "pineal": "^0.2.1",
     "read-data": "^1.1.0",
     "ytdl-core": "^0.20.4"
   },
