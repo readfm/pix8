@@ -159,6 +159,90 @@ window.Pix8 = {
 		return link;
   },
 
+  createIndex: function(){
+    var $cont = this.$search = $('<div>', {id: 'pix8list-search'}).appendTo(this.$Pix8list);
+
+    var index = this.index = elasticlunr(function(){
+      this.addField('title');
+      this.addField('url');
+      this.addField('word');
+      this.setRef('ref');
+      this.saveDocument(false);
+    });
+
+    var link = new Link(this.words_link);
+    link.list(items => {
+      (items || []).forEach(name => {
+        var word = name.split('.')[0];
+
+        index.addDoc({
+          word,
+          ref: word
+        });
+      });
+
+      var sites = [];
+      var link = new Link(this.sites_link);
+      link.list(list => {
+        list.forEach(name => {
+        	var url = Pix8.sites_link + '/' + name;
+        	sites.push(url);
+        });
+
+
+        Items.load(sites).then(items => {
+          items.forEach(item => {
+            item.ref = Pix8.sites_link + '/' + md5(item.url) + '.yaml';
+            index.addDoc(item);
+          });
+        });
+      });
+
+
+    });
+  },
+
+  search: function(q){
+    if(!this.index) return;
+
+    var found = this.index.search(q);
+
+    this.$search.empty();
+    found.forEach(rez => {
+      console.log(rez);
+      var item = (rez.ref.indexOf('://')+1)?Items[rez.ref]:{word: rez.ref}
+      var $item = $('<a>', {title: item.url});
+      this.$search.append($item);
+      $item.text(item.title || item.url || item.word);
+      $item.data(item);
+      $item.click(ev => Pix8.clickResult(ev));
+    });
+  },
+
+  clickResult: function(ev){
+    var item = $(ev.target).data();
+
+    this.$Pix8list.hide();
+
+    if(item.url){
+      this.onSite(item.url);
+      return;
+    }
+
+    if(item.word){
+      var carousel = new Carousel({
+        name: item.word
+      });
+
+
+      var $carouselLast = $('#pic > .carousel').last();
+
+      carousel.$t.insertAfter($carouselLast[0] || $('#pix8-header'));
+      carousel.load(item.word);
+      Pix8.resize();
+    }
+  },
+
   siteLoaded: function(site){
     var url = ev.target.document.src;
     var link = new Link(this.sites_link+md5(url)+'.yaml');
@@ -186,6 +270,12 @@ window.Pix8 = {
       $resize.addClass('focus');
     }).blur(ev => {
       $resize.removeClass('focus');
+    });
+
+    $tag.keypress(ev => {
+      console.log(ev.target.value);
+      if(ev.target.value.length > 2)
+        this.search(ev.target.value);
     });
 
     $tag.bindEnter(function(){
@@ -295,7 +385,8 @@ window.Pix8 = {
       $cont.toggle();
 
       if(!Pix8.initiated){
-        this.initWords();
+        this.createIndex();
+        //this.initWords();
         this.initSites();
         Pix8.initiated = true;
       }

@@ -35,7 +35,7 @@ window.Pic = {
       .then(s => s.injectCss("design/ext.css"))
       .then(s => s.executeScripts(
         "modules/ws.js",
-        "config.js", "libs/functions.js", "libs/gif.js", "libs/Elem.js",
+        "config.js", "libs/functions.js", "libs/gif.js", "libs/Elem.js", "libs/elasticlunr.js",
         "modules/Link-ws.js", "modules/me.js",
         "pix8.js", "pix.js", "carousel.js", "index.js", 'modules/ext.js'
       ))

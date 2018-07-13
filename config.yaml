@@ -1,10 +1,10 @@
 port: 80
 storage:
-  home: 'C:\88\me'
-  private: 'C:\88\private'
-  items: 'C:\88\items'
-  dats: 'C:\88\dat'
-  wiki: 'C:\88\wiki'
+  home: 'C:\Users\user\Desktop\8\me'
+  private: 'C:\Users\user\Desktop\private'
+  items: 'C:\Users\user\Desktop\items'
+  dats: 'C:\Users\user\Desktop\dat'
+  wiki: 'C:\Users\user\Desktop\8\wiki'
 windows:
   index:
     openDevTools: true

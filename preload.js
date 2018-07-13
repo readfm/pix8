@@ -136,6 +136,7 @@ site.onRequest = function(q, doc){
 			<script src="`+home+`/libs/omggif.js"></script>
 			<script src="`+home+`/libs/gif.js"></script>
 			<script src="`+home+`/libs/md5.js"></script>
+			<script src="`+home+`/libs/elasticlunr.js"></script>
 			<script src="`+home+`/libs/cookie.jquery.js"></script>
 			<script src="`+home+`/libs/js.cookie.js"></script>
 			<script src="`+home+`/libs/Elem.js"></script>
