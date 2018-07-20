@@ -4,6 +4,8 @@ window.Pix8 = {
 
     }, cfg);
 
+    var t = this;
+
     this.words_link = Me.link+'words';
     this.sites_link = Me.link+'sites';
 
@@ -16,6 +18,13 @@ window.Pix8 = {
     var $url = $('<input>', {placeholder: 'URL', id: 'pix8-url'}).appendTo($title);
     $url.bindEnter(function(ev){
       Pix8.onSite(this.value);
+    })
+
+    $url.keyup(function(ev){
+      console.log(ev);
+      t.search(''+this.value);
+    }).blur(ev => {
+
     });
 
     Pix8.initInput();
@@ -198,11 +207,15 @@ window.Pix8 = {
         });
       });
 
-
     });
   },
 
   search: function(q){
+    console.log(this.$Pix8list.is(':hidden'));
+    if(this.$Pix8list.is(':hidden')){
+      $('#pic8-openMenu').click();
+    }
+
     if(!this.index) return;
 
     var found = this.index.search(q);
@@ -270,12 +283,6 @@ window.Pix8 = {
       $resize.addClass('focus');
     }).blur(ev => {
       $resize.removeClass('focus');
-    });
-
-    $tag.keypress(ev => {
-      console.log(ev.target.value);
-      if(ev.target.value.length > 2)
-        this.search(ev.target.value);
     });
 
     $tag.bindEnter(function(){
