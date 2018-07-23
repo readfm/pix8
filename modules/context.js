@@ -16,6 +16,11 @@ window.Context = {
     $('<a>', {id: 'pic-context-open', class: 'option', target: '_blank'}).text('Open').appendTo($menu);
     $('<a>', {id: 'pic-context-newTab', class: 'option', target: '_blank'}).text('Open in newTab').appendTo($menu);
     $('<a>', {id: 'pic-context-youtube', class: 'option', target: '_blank'}).text('Open in Youtube').appendTo($menu);
+    $('<a>', {id: 'pic-context-download', class: 'option', target: '_blank'}).click(ev => {
+      var item = this.item;
+
+      
+    }).text('Download').appendTo($menu);
 
 
     $('<div>', {id: 'pic-context-copy', class: 'option'}).click(ev => {
@@ -50,9 +55,12 @@ window.Context = {
   openFor: $item => {
     var pos = $item.offset();
 
-    var item = $item.data();
+    var item = this.item = $item.data();
+
+    console.log(item);
 
     $('#pic-context-youtube').showIf(item.youtube_id).attr('href', 'http://youtu.be/'+item.youtube_id);
+    $('#pic-context-download').showIf(item.src.indexOf('youtube.com')+1);
     $('#pic-context-newTab').showIf(item.path).attr('href', item.path);
     $('#pic-context-open').showIf(item.segments || item.src).attr('href', item.segments?('http://ggif.me/'+item.id):item.src);
 

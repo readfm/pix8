@@ -1125,9 +1125,7 @@ Carousel.prototype = {
 	push: function(link){
 		var $item;
 
-		console.log(link)
 		var item = Items[link];
-		console.log(item);
 		if(!item) return;
 
 		$item = pix.build(item, link);

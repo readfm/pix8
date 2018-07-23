@@ -27,8 +27,8 @@ $(document).on('pref', ev => {
       background: 'red',
       width: '5%',
       transition: 'width 0.3s'
-
     }).appendTo('#pic');
+
     stream.on('progress', (chunk, already, total) => {
       var prc = parseFloat(100 * (already/total)).toFixed(2);
       $bar.css('width',  prc + '%');

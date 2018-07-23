@@ -65,7 +65,6 @@ var pix = Pix = {
 	},
 
 	build: (item, url) => {
-		console.log(item, url);
 		var elem = new Elem(item, {url});
 		$(elem.$item).dblclick(ev => {
 			require('opn')(elem.item.src);
@@ -355,7 +354,6 @@ var pix = Pix = {
 			},
 			collection: 'views'
 		}, function(r){
-			console.log(r.item);
 			if(r && r.item){
 				Pix.send({
 					cmd: 'makeFirst',

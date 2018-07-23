@@ -18,7 +18,6 @@ window.Items = {
 
           items.push(item);
 
-          console.log(left);
           if(!left) ok(items);
         });
       });
