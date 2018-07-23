@@ -99,6 +99,7 @@ site.onRequest = function(q, doc){
 			$elem.attr('href', protocol+'://'+host+src);
 		});
 
+		$('.mw-editsection, .Template-Fact, .reference').remove();
 		$("script[src^='/']").remove();/*.each((i, elem) => {
 			var $elem = $(elem);
 
