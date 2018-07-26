@@ -5,6 +5,7 @@ storage:
   items: 'C:\Users\user\Desktop\8\items'
   dats: 'C:\Users\user\Desktop\dats'
   wiki: 'C:\Users\user\Desktop\8\wiki'
+  youtubes: 'C:\Users\user\Desktop\youtubes'
 windows:
   index:
     openDevTools: true

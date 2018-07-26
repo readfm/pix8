@@ -1415,6 +1415,52 @@ Carousel.prototype = {
 				console.log(f);
 			}
 
+			if(f.type.match('video.*')){
+				var lf = f;
+
+				var reader = new FileReader();
+				reader.onload = function(ev2){
+					console.log(lf);
+					var ext = lf.name.split('.').pop();
+					var id = randomString(6);
+
+					var src = App.items_link + id + '.' + ext;
+					(new Link(src)).save(ev2.target.result).then(() => {
+						var item = {
+							src,
+							owner: carousel.getOwner(),
+							time: (new Date()).getTime(),
+							type: 'video'
+						};
+
+						var link = new Link(App.items_link + id + '.yaml');
+						console.log(link.url, item);
+						link.save(item).then(itm => {
+							console.log(itm);
+				    	var elem = new Elem(item, {url: link.url});
+							var $item = elem.$item;
+
+							console.log(elem, $item);
+
+							if($before)
+								$item.insertBefore($before);
+							else
+							if(ev.target.src)
+								$item.insertBefore(ev.target.parentNode);
+							else
+								carousel.$t.append($item);
+
+				    	carousel.resize($item);
+				    	carousel.supportEvents($item);
+							carousel.updateView();
+						});
+					});
+				};
+
+				reader.readAsArrayBuffer(f);
+				continue;
+			}
+
 			if(!f.type.match('image.*'))
 				continue;
 

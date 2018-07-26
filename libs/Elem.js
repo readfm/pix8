@@ -45,6 +45,10 @@ $.extend(module.prototype, {
 				t.view();
 		}
 		else
+		if(item.type == 'video'){
+			t.video();
+		}
+		else
 		if(item.type == 'image'){
 			if(item.ipfs){
 
@@ -57,6 +61,9 @@ $.extend(module.prototype, {
 				item.src = Cfg.files + item.file;
 
 
+			if(item.video)
+				t.video();
+			else
 			if(t.youtube()){}
 			else
 			if(item.src && item.src.indexOf('ggif.co')+1)
@@ -212,6 +219,19 @@ $.extend(module.prototype, {
 		this.$item.append("<div class='iframe-cover'></div>");
 
 		return frame;
+	},
+
+	video: function(){
+		var src = this.item.video || this.item.src;
+		var video = document.createElement("video");
+		video.src = (src.indexOf('dat://') + 1)?(new Link(src)).http:src;
+		video.controls = true;
+		video.autoplay = false;
+		this.$item.append("<div class='iframe-cover'></div>");
+
+		this.$item.addClass('video').append(video);
+
+		return video;
 	},
 
 	ggifFrame: function($thumb, item){
@@ -397,7 +417,7 @@ $.extend(module.prototype, {
 });
 
 $(function(){
-	$(document).on('mouseleave', '.ggif,.youtube', function(ev){
+	$(document).on('mouseleave', '.ggif,.youtube, .video', function(ev){
 		$(this).children('.iframe-cover').show();
 	});
 

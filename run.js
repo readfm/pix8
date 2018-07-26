@@ -23,8 +23,6 @@ Pineal.init(Cfg);
 //  dats_folder: JP(My_dir, 'dats')
 
 
-
-
 global.App = {
   windows: [],
   openWindow(name){
@@ -79,16 +77,18 @@ global.App = {
     this.home_link = 'dat://'+Dats.key(Cfg.storage.home)+'/';
     this.items_link = 'dat://'+Dats.key(Cfg.storage.items)+'/';
     this.wiki_link = 'dat://'+Dats.key(Cfg.storage.wiki)+'/';
+    this.youtubes_link = 'dat://'+Dats.key(Cfg.storage.youtubes)+'/';
   }
 };
 
 API.app = (m, q, re) => {
-  var r = _.pick(App, 'home_link', 'items_link', 'wiki_link');
+  var r = _.pick(App, 'home_link', 'items_link', 'wiki_link', 'youtubes_link');
   re(r);
 }
 
 App.init();
 require('./preload.js');
+require('./youtube_dl.js');
 
 
 if(process.versions['electron'] && Electron.app){

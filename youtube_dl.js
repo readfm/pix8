@@ -1,62 +1,63 @@
 var FS = require('fs');
 var log = t => console.log(t);
 
-const ytdl = require('ytdl-core');
+const JP = require('path').join;
+
+var ytdl = require('ytdl-core');
 var YAML = require('js-yaml');
 
 var ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath('./bin/ffmpeg.exe');
 
-S.youtube = m => {
-  var dat = Dats[(Pref.youtubes || '').split('://')[1]];
-  var folder = dat?dat.path:JP(require('os').homedir(), 'youtubes');
+API.youtube_dl = (m, q, cb) => {
+  var folder = Cfg.storage.youtubes;
 
-  const key = dat.key.toString('hex');
+  var id = m.id;
 
-  var url = 'http://www.youtube.com/watch?v='+d;
+  var url = 'http://www.youtube.com/watch?v='+m.id;
 
-  var video_file = d + '.mp4';
+  var video_file = id + '.mp4';
 
-  log(dat);
   var stream = ytdl(url, { filter: (format) => format.container === 'mp4' });
-  stream.pipe(FS.createWriteStream(JP(dat.path, video_file)));
+  stream.pipe(FS.createWriteStream(JP(Cfg.storage.youtubes, video_file)));
 
+  /*
   var $bar = $('<div>').css({
     height: '3px',
     background: 'red',
     width: '5%',
     transition: 'width 0.3s'
   }).appendTo('#pic');
+  */
 
   stream.on('progress', (chunk, already, total) => {
     var prc = parseFloat(100 * (already/total)).toFixed(2);
-    $bar.css('width',  prc + '%');
+    console.log(prc);
+    //$bar.css('width',  prc + '%');
   });
 
   stream.on('finish', () => {
-    var thumb = 'https://img.youtube.com/vi/'+d+'/hqdefault.jpg';
+    var thumb = 'https://img.youtube.com/vi/'+id+'/hqdefault.jpg';
 
-    var file = FS.createWriteStream(JP(dat.path, d+'.jpg'));
+    var file = FS.createWriteStream(JP(Cfg.storage.youtubes, id+'.jpg'));
     var request = require('https').get(thumb, response => {
       response.pipe(file);
 
-
-      var audio = ffmpeg(JP(dat.path, video_file)).toFormat('gif');
-      audio.saveToFile(JP(dat.path, d+'.gif'));
-
       file.on('finish', () => {
         var item = {
-          src: 'dat://'+key+'/'+video_file,
-          thumb: 'dat://'+key+'/'+d+'.jpg',
-          type: 'video'
+          video: App.youtubes_link+video_file,
+          thumb: App.youtubes_link+id+'.jpg'
         };
-        console.log(item);
 
-        FS.writeFileSync(JP(dat.path, d+'.yaml'), YAML.safeDump(item));
+        //$bar.remove();
 
-        $bar.remove();
 
         file.close();
+
+        cb({
+          item,
+          link: App.youtubes_link + id + '.yaml'
+        });
       });
     });
   });

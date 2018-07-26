@@ -236,6 +236,10 @@ opacity: 0.3;
 	transition: opacity 0.5s;
 }
 
+.thumb > video{
+	height: 100%;
+}
+
 .uploading{
     animation: opacity 0.3s ease infinite;
 }
