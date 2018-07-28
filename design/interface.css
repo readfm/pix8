@@ -172,6 +172,7 @@ textarea {
 
 .page, .app{
 	display: none;
+	width: 100%;
 }
 
 .select{

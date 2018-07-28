@@ -1,11 +1,12 @@
 port: 80
 storage:
-  home: 'C:\Users\user\Desktop\8\me'
-  private: 'C:\Users\user\Desktop\8\private'
-  items: 'C:\Users\user\Desktop\8\items'
-  dats: 'C:\Users\user\Desktop\dats'
-  wiki: 'C:\Users\user\Desktop\8\wiki'
-  youtubes: 'C:\Users\user\Desktop\youtubes'
+  home: 'C:\8\me'
+  private: 'C:\8\private'
+  items: 'C:\8\items'
+  dats: 'C:\8\dats'
+  wiki: 'C:\8\wiki'
+  youtubes: 'C:\8\youtubes'
+ggif_app: 'C:\8\ggif'
 windows:
   index:
     openDevTools: true

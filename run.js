@@ -16,6 +16,10 @@ const Lines = file => {
 }
 
 const Cfg = Read(JP(__dirname, 'config.yaml'));
+var pathConfig = JP(__dirname, '..',  'config.yaml');
+if(FS.existsSync(pathConfig))
+  _.extend(Cfg, Read(pathConfig));
+
 
 const Pineal = require('pineal');
 _.extend(global, _.pick(Pineal, 'Dats', 'Link', 'Http', 'W', 'API'));
@@ -90,6 +94,9 @@ App.init();
 require('./preload.js');
 require('./youtube_dl.js');
 
+if(Cfg.ggif_app && FS.existsSync(Cfg.ggif_app)){
+  require(JP(Cfg.ggif_app, 'site.js'));
+}
 
 if(process.versions['electron'] && Electron.app){
   Electron.app.on('ready', () => {

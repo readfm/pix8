@@ -37,12 +37,24 @@ window.Pix8 = {
       Pix8.initBrowser();
     }
 
+    Pix8.initGgif();
+
     Pix8.resize();
   },
 
 	resize: function(){
     if(this.$pic.css('position') == 'fixed')
-    Pix.leaveGap();
+
+    console.log('Pix8.resize');
+    if($('#content').is(':visible'))
+      Pix.leaveGap();
+
+    var height = $('#pic').height();
+
+    if($('.page').is(':visible')){
+      $('.page').height(window.innerHeight - height);
+      $('body').css('margin-top', height);
+    }
 
     return;
 		var height = $('#pic').height();
@@ -101,6 +113,11 @@ window.Pix8 = {
 
 
     return url;
+  },
+
+  initGgif(){
+    var $iframe = $('<iframe>', {id: 'ggif', class: 'page'});
+    $iframe.appendTo('body');
   },
 
   initBrowser(){

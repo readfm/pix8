@@ -26,13 +26,17 @@ window.Context = {
       .click(Context.clickDownload).text('Compile ggif').appendTo($menu);
 
     $('<a>', {id: 'pic-context-timings', class: 'option', target: '_blank'})
-      .click(Context.clickDownload).text('Timings').appendTo($menu);
+      .click(Context.clickTimings).text('Edit timings').appendTo($menu);
 
     $('<div>', {id: 'pic-context-copy', class: 'option'}).click(ev => {
     }).text('Copy').appendTo($menu);
 
     $('<div>', {id: 'pic-context-share', class: 'option'}).click(ev => {
     }).text('Share').appendTo($menu);
+
+
+    $('<div>', {id: 'pic-context-id'}).click(ev => {
+    }).text('id').appendTo($menu);
 
     /*
     $('#pic').on('contextmenu', '.thumb', function(ev){
@@ -45,6 +49,19 @@ window.Context = {
           $menu.hide();
     });
     */
+  },
+
+  clickTimings: ev => {
+    var $item = this.$item,
+        item = $item.data(),
+        src = $item.attr('name');
+
+    var id = src.split('/').pop().split('.')[0];
+
+    $('.tip').hide();
+    $('#content').hide();
+    $('#ggif').attr('src', 'http://ggif/#'+id).show();
+    Pix8.resize();
   },
 
   clickDownload: ev => {
@@ -95,6 +112,7 @@ window.Context = {
     $('#pic-context-youtube').showIf(item.youtube_id).attr('href', 'http://youtu.be/'+item.youtube_id);
     $('#pic-context-download').showIf(item.src.indexOf('youtube.com')+1);
     $('#pic-context-newTab').showIf(item.path).attr('href', item.path);
+    $('#pic-context-id').text($item.attr('name'));
     $('#pic-context-open').showIf(item.segments || item.src).attr('href', item.segments?('http://ggif.me/'+item.id):item.src);
 
     var isVideo = (item.type == 'video' || item.video);
