@@ -34,6 +34,8 @@ global.Link = class Link{
 
     if(this.protocol == 'dat'){
       this.getDat(then);
+
+      this.file_path = JP(Dat_map[this.key], this.path);
     }
   }
 

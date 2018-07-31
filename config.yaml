@@ -7,6 +7,10 @@ storage:
   wiki: 'C:\8\wiki'
   youtubes: 'C:\8\youtubes'
 ggif_app: 'C:\8\ggif'
+
+ffmpeg: '../bin/ffmpeg.exe'
+ffprobe: '../bin/ffprobe.exe'
+
 windows:
   index:
     openDevTools: true

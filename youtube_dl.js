@@ -7,7 +7,8 @@ var ytdl = require('ytdl-core');
 var YAML = require('js-yaml');
 
 var ffmpeg = require('fluent-ffmpeg');
-ffmpeg.setFfmpegPath('./bin/ffmpeg.exe');
+ffmpeg.setFfmpegPath(Cfg.ffmpeg);
+ffmpeg.setFfprobePath(Cfg.ffprobe);
 
 API.youtube_dl = (m, q, cb) => {
   var folder = Cfg.storage.youtubes;
@@ -60,5 +61,18 @@ API.youtube_dl = (m, q, cb) => {
         });
       });
     });
+  });
+};
+
+API.video = (m, q, cb) => {
+  var link = new Link(m.src);
+
+  var stream = ffmpeg(link.file_path);
+  if(m.start) stream = stream.seek(m.start);
+  if(m.length) stream = stream.duration(m.length);
+
+  var destination_link = new Link(m.destination_src);
+  stream.saveToFile(destination_link.file_path).on('end', () => {
+    cb({ok: true});
   });
 };

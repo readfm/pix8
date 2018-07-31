@@ -1,0 +1,13 @@
+#crop-start, #crop-length{
+    width: 50px;
+    height: 25px;
+    margin: 0 1px 1px;
+    vertical-align: middle;
+    padding: 4px;
+    font-size;
+    line-height: 16px;
+}
+
+#crop-do{
+    height: 26px;
+}

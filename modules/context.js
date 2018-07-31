@@ -19,8 +19,13 @@ window.Context = {
     $('<a>', {id: 'pic-context-download', class: 'option', target: '_blank'})
       .click(Context.clickDownload).text('Download').appendTo($menu);
 
-    $('<a>', {id: 'pic-context-crop', class: 'option', target: '_blank'})
-      .click(Context.clickDownload).text('Crop').appendTo($menu);
+    var $crop = $('<div>', {id: 'crop'}).appendTo($menu);
+    $('<input>', {id: 'crop-start', placeholder: 'start'}).appendTo($crop);
+    $('<input>', {id: 'crop-length', placeholder: 'length'}).appendTo($crop);
+    $('<button>', {id: 'crop-do'})
+      .css({display: 'inline-block'})
+      .click(Context.clickCrop)
+      .text('Crop').appendTo($crop);
 
     $('<a>', {id: 'pic-context-ggif', class: 'option', target: '_blank'})
       .click(Context.clickDownload).text('Compile ggif').appendTo($menu);
@@ -64,6 +69,48 @@ window.Context = {
     Pix8.resize();
   },
 
+  clickCrop: ev => {
+    var $item = this.$item,
+        item = $item.data();
+
+    var carousel = $item.parent()[0].carousel;
+
+    var start = $('#crop-start').val(),
+        length = $('#crop-length').val();
+
+    var src = item.video || item.src;
+
+    var id = randomString(6);
+    var destination_src = App.items_link + id + '.mp4';
+
+    W({
+      cmd: 'video',
+      start, length, src,
+      destination_src
+    }, r => {
+      console.log($item, carousel);
+
+      var item = {
+        src: destination_src,
+        owner: carousel.getOwner(),
+        time: (new Date()).getTime(),
+        type: 'video'
+      };
+
+
+      var item_link = new Link(App.items_link + id + '.yaml');
+      item_link.save(item).then(itm => {
+        var elem = new Elem(item, {url: item_link.url});
+        var $newItem = elem.$item;
+
+        console.log(elem, item);
+
+        $newItem.insertAfter($item);
+        carousel.updateView();
+      });
+    });
+  },
+
   clickDownload: ev => {
     var $item = this.$item,
         item = $item.data();
@@ -84,7 +131,7 @@ window.Context = {
 
       var elem = new Elem(_.extend(item, r.item), {url: link.url});
 
-      $item.replaceWith(elem);
+      $item.replaceWith(elem.$item);
 
       carousel.resize($item);
       carousel.supportEvents($item);
@@ -116,7 +163,7 @@ window.Context = {
     $('#pic-context-open').showIf(item.segments || item.src).attr('href', item.segments?('http://ggif.me/'+item.id):item.src);
 
     var isVideo = (item.type == 'video' || item.video);
-    $('#pic-context-crop, #pic-context-ggif, #pic-context-timings').showIf(isVideo);
+    $('#crop, #pic-context-ggif, #pic-context-timings').showIf(isVideo);
 
     console.log(item);
 
@@ -129,4 +176,6 @@ window.Context = {
 
 $(ev => {
   Context.init();
+
+  //$(document).on('pix8-video');
 });
