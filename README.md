@@ -1,4 +1,30 @@
-Pix8 better pictures faster:
+# pix8: better pictures faster
+
+## status:
+out of control, ready for fork/management upgrade
+thanks for your patience
+get updates, send complaints @dukecrawford
+
+## demo 1
+* http://th.ai vocal visual wiki experiment eg
+* th.ai/vocal
+* th.ai/visual
+* th.ai/wiki more vocal visual wiki
+  
+## demo 2
+  a) tiny.cc/pix8
+  b) 1 minute video, watch it
+  c) try extension, pix8 any webpage you like
+  
+## code questions
+Mantas Kazlauskas mntask@gmail.com @mntask
+
+## v3 is below
+DAT http://datproject.org powered user owned data
+hash validation (immutable data you can trust)
+fast local memory (less server dependency)
+
+v2 readme
 
 Pictures are good. How make better?
 
@@ -10,12 +36,6 @@ Pictures are good. How make better?
 * MEMORY own, sign, date, transact
 * SOCIAL see who sees what how
 * SUPERDISTRIBUTION see Brad Cox
-
-Duke writes specs wants social code
-Wafaa translating specs to programmers
-Mantas wrote code below may write more
-David might take over or someone
-You're invited to hack better pix faster
 
 ==
 
