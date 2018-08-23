@@ -1,4 +1,8 @@
 # pix8: better pictures faster
+[![Build Status][travis-svg]][travis-url]
+[![dependency status][deps-svg]][deps-url]
+[![dev dependency status][dev-deps-svg]][dev-deps-url]
+[![License][license-image]][license-url]
 
 ## status:
 out of control, ready for fork/management upgrade
