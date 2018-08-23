@@ -1,6 +1,53 @@
 # pix8: better pictures faster
 [![npm version](https://badge.fury.io/js/apollo-client.svg)](https://badge.fury.io/js/apollo-client) [![Get on Slack](https://img.shields.io/badge/slack-join-orange.svg)](http://www.apollostack.com/#slack) [![Open Source Helpers](https://www.codetriage.com/apollographql/apollo-client/badges/users.svg)](https://www.codetriage.com/apollographql/apollo-client)
 
+## About
+Package can be openned in three different environments
+chrome extension - go to chrome://extensions/ , mark "Developer mode" , click 'Load unpacked' and link this folder
+electron app - just open electron/pix8.exe and you will see it running in your task bar
+web app - click on run.cmd and open it in browser http://m/word
+
+
+## Install
+Before installing make sure you have, electron, git, https://datproject.org and https://nodejs.org/en/ installed.
+To be able to edit visual data https://www.ffmpeg.org/download.html is recomended
+Once you got git cloned, open that folder and run npm installer to get all the rest dependencies
+    git clone https://github.com/readfm/pix8.git # or your own fork on Github
+    cd pix8
+    npm install
+    
+once its done, etract ffmpeg bin folder and make sure you link ffmpeg bin's correctly in config.yaml file
+    
+## System structure
+It's recomended to keep required folders along with pix8. But all defaults can be changed in config.yaml
+By default configuration data will be taken from config.yaml file and can be extended by ../config.yaml (if the one was created)
+
+## Data model
+System is using jQuery like way of interacting with source, within new Link(url) can be passed path of supported data format
+For now we are using DAT to manage data, later it can be extended by IPFS and NDN 
+
+## Configuration
+Right now we dont have setup environment to do installation and configuration steps within simple UI,
+but if you preffer edit yourself, open config.yaml
+    port: 80 #default port to access WEB version
+    storage:
+      home: 'C:\8\me'           # public location of where to store your personal data
+      private: 'C:\8\private'   # folder with an imformation that cant be shared with anybody
+      items: 'C:\8\items'       # where we store initial DAT elements
+      dats: 'C:\8\dats'         # default spot where to store external dat packages
+      wiki: 'C:\8\wiki'         # refactored wiki html pages
+      youtubes: 'C:\8\youtubes' # downloaded youtube videos, before it gets converted
+    ggif_app: 'C:\8\ggif'       # leave empty if you dont need https://github.com/readfm/ggif
+
+    ffmpeg: '../bin/ffmpeg.exe'     #path of video codecs
+    ffprobe: '../bin/ffprobe.exe'   # from https://www.ffmpeg.org/download.html
+
+next edit C:\Windows\System32\drivers\etc\hosts with admin permissions and add
+    127.0.0.1	  pix8.lh preload.lh 8 m m8
+
+## System Requirements
+pi8 can run on most Linux, macOS, and Windows systems. We recommend running it on a machine with at least 2 GB of RAM .
+
 ## status:
 out of control, ready for fork/management upgrade
 thanks for your patience
