@@ -12,6 +12,7 @@ web app - click on run.cmd and open it in browser http://m/word
 Before installing make sure you have, electron, git, https://datproject.org and https://nodejs.org/en/ installed.
 To be able to edit visual data https://www.ffmpeg.org/download.html is recomended
 Once you got git cloned, open that folder and run npm installer to get all the rest dependencies
+
     git clone https://github.com/readfm/pix8.git # or your own fork on Github
     cd pix8
     npm install
