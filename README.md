@@ -29,6 +29,7 @@ For now we are using DAT to manage data, later it can be extended by IPFS and ND
 ## Configuration
 Right now we dont have setup environment to do installation and configuration steps within simple UI,
 but if you preffer edit yourself, open config.yaml
+
     port: 80 #default port to access WEB version
     storage:
       home: 'C:\8\me'           # public location of where to store your personal data
