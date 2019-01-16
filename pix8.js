@@ -20,8 +20,7 @@ window.Pix8 = {
       Pix8.onSite(this.value);
     })
 
-    $url.keyup(function(ev){
-      console.log(ev);
+    $url.keyup(function(ev){f
       t.search(''+this.value);
     }).blur(ev => {
 
@@ -37,7 +36,7 @@ window.Pix8 = {
       Pix8.initBrowser();
     }
 
-    Pix8.initGgif();
+    //Pix8.initGgif();
 
     Pix8.resize();
   },
@@ -45,7 +44,6 @@ window.Pix8 = {
 	resize: function(){
     if(this.$pic.css('position') == 'fixed')
 
-    console.log('Pix8.resize');
     if($('#content').is(':visible'))
       Pix.leaveGap();
 
@@ -228,7 +226,6 @@ window.Pix8 = {
   },
 
   search: function(q){
-    console.log(this.$Pix8list.is(':hidden'));
     if(this.$Pix8list.is(':hidden')){
       $('#pic8-openMenu').click();
     }
@@ -239,7 +236,6 @@ window.Pix8 = {
 
     this.$search.empty();
     found.forEach(rez => {
-      console.log(rez);
       var item = (rez.ref.indexOf('://')+1)?Items[rez.ref]:{word: rez.ref}
       var $item = $('<a>', {title: item.url});
       this.$search.append($item);
@@ -303,6 +299,10 @@ window.Pix8 = {
     });
 
     $tag.bindEnter(function(){
+      Pix8.parseTag(this.value);
+
+      return;
+
       if(this.value[0] == '+'){
 
         Pix8.onPlus[plus[0]](this.value.substr(this.value.indexOf(':')+1));
@@ -332,6 +332,10 @@ window.Pix8 = {
     });
 
     this.enableInputDrag();
+  },
+
+  parseTag(url){
+    
   },
 
   onPlus: {},
@@ -456,8 +460,7 @@ window.Pix8 = {
 
   loadWords: function(id){
     var link = new Link(this.words_link);
-    console.log(this.words_link);
-    console.log(link);
+
     link.list(items => {
       (items || []).forEach(name => {
         var word = name.split('.')[0];

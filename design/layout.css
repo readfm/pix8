@@ -5,6 +5,10 @@
     /* min-height: 100px; */
 }
 
+#pic input, #pic button{
+	outline: none;
+}
+
 #youtube{
     height: 100%;
     width: 100%;   
@@ -33,6 +37,7 @@
    margin: 0;
    border: 0;
    color: white;
+   padding: 0 5px;
 }
 
 #gg{

@@ -1,0 +1,61 @@
+http:
+  port: 3000
+  main: "localhost"
+
+ws:
+  port: 4000
+
+https:
+  port: 443
+
+production: false
+
+modules:
+  - functions
+  - system
+  - query
+  - site
+  - acc
+  - socket
+  - fs
+  - collections
+  - tree
+  - youtube
+  - authorize
+  - mail
+  - givhub
+
+loadSet:
+  - lastSync
+
+fs:
+  collection: 'files'
+
+path:
+  modules: './modules/'
+  files: './www/files/'
+  tmp: './www/tmp/'
+  ffmpeg: "./bin/ffmpeg.exe"
+  ffprobe: "C:/lib/ffmpeg/bin/ffprobe.exe"
+  youtube: './files/tube/'
+  certificates: 'certificates/'
+
+
+devMode: true
+currency: EUR
+lang: en
+
+key: mk
+
+wait: false
+
+acc:
+  captcha: false
+  emailConfirm: false
+
+
+
+tingodb:
+  path: './data'
+  collections: []
+

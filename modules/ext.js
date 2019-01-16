@@ -1,7 +1,10 @@
 chrome.runtime.onMessage.addListener(function(d, sender, sendResponse){
 		console.log(d);
   	if(d.cmd == 'carousel'){
-  		if(d.do) Pix8.$pic[d.do]();
+			console.log(Pix8);
+			if(!Pix.$pic) return;
+			
+  		if(d.do) Pix.$pic[d.do]();
   		sendResponse({
   			visible: Pix8.$pic.is(':visible'),
   			height: Pix.height()

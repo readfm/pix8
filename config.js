@@ -1,7 +1,8 @@
 window.Cfg = {
-  port: 80,
+  port: 4000,
   host: '127.0.0.1',
   files: 'http://127.0.0.1:5030/items/',
+  files: 'http://files.lh/',
 
   default_site: 'https://css-tricks.com/',
 

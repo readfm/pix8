@@ -17,17 +17,17 @@ $(function(ev){
 		//if(m.user) acc.ok(m.user);
 
 
-		W({cmd: 'app'}, r => {
-			window.App = r;
-			User.id = Me.link = r.home_link;
+		//W({cmd: 'app'}, r => {
+			window.App = {};
+			//User.id = Me.link = r.home_link;
 
-			window.Pref = r || {};
+			window.Pref = {}// r || {};
 
 			Pix8.init();
 
 			$(document).trigger('loaded');
 			$(document).trigger('pref');
-		});
+		//});
 
 		$(document).trigger('connected');
 	}

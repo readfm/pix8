@@ -1,4 +1,4 @@
-const FS = require('fs');
+ const FS = require('fs');
 const JP = require('path').join;
 
 var Electron;
