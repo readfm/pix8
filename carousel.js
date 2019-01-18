@@ -1138,6 +1138,45 @@ Carousel.prototype = {
 		return $item;
 	},
 
+
+	laylink(lnk){
+		this.$t.children('.thumb').remove();
+
+		lnk.children(links => {
+      links.forEach(link => {
+				console.log(link);
+        link.load(item => {
+					console.log(item);
+					item.src = link.http;
+					item.type = 'image';
+					let $item = pix.build(item, link);
+
+					this.$t.append($item);
+
+					this.resize($item);
+					this.supportEvents($item);
+        });
+      });
+		});
+	},
+
+	// inset alreadey loaded image
+	push: function(link){
+		var $item;
+
+		var item = Items[link];
+		if(!item) return;
+
+		$item = pix.build(item, link);
+
+		this.$t.append($item);
+
+		this.resize($item);
+		this.supportEvents($item);
+
+		return $item;
+	},
+
 	toIds: function(srcs){
 		if(!srcs || !srcs.length) return;
 

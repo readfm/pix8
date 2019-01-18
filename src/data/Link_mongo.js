@@ -36,17 +36,37 @@ export default class Link_mongo{
       $.extend(this, u);
     }
 
-    this.http_files = 'http://f.io.cx/';
-    this.http = 'http://'+Cfg.host+':'+Cfg.port+'/'+protocol+'/'+way;
+    //this.http = 'http://'+Cfg.host+':'+Cfg.port+'/'+protocol+'/'+way;
+    this.load_filers();
+  }
+
+  load_filers(){
+    this.fileLinks = {
+      'io.cx': 'http://f.io.cx/',
+      'manager.lh': 'http://files.lh/',
+      'localhost': 'http://files.lh/',
+    };
+  }
+
+  update4ws(ws){
+    if(!this.http && ws.files)
+      this.http = ws.files;
+    else
+    if(!this.http)
+      this.http = this.fileLinks[this.domain];
   }
 
   W(m){
     return new Promise((ok, no) => {
-      this.constructor.servers.connect(this.domain).then(ws => ws.send(m, r => ok(r)));
+      this.constructor.servers.connect(this.domain).then(ws => {
+        this.update4ws(ws);
+
+        ws.send(m, r => ok(r));
+      });
     });
   }
 
-  update(set){
+  set(set){
     return new Promise((ok, no) => {
       this.W({
         cmd: 'update',
@@ -59,10 +79,37 @@ export default class Link_mongo{
     });
   }
 
-  download(){
+  download(cb){
+    this.load(item => {
+      this.constructor.servers.connect(this.domain).then(ws => {
+        ws.download(item.file).then(function(data, file){
+          cb(data, file);
+        });
+      });
+    });
+  }
+
+  order(links){
+    var children = [];
+    links.forEach(link => {
+      children.push((
+        this.protocol == link.protocol &&
+        this.host == link.host &&
+        this.collection == link.collection
+      )?link.id:link.url);
+    });
+
+    this.set({children});
+  }
+
+  upload(data){
     return new Promise((ok, no) => {
-      ws.download(this.item.file).then(function(data, file){
-        ok(data, file);
+      this.load(item => {
+        this.constructor.servers.connect(this.domain).then(ws => {
+          ws.upload(data, file => {
+            ok(file);
+          }, {id: item.file});
+        });
       });
     });
   }
@@ -87,10 +134,7 @@ export default class Link_mongo{
 
     this.item = new Promise((k, n) => {
       this.W({cmd: 'get', filter: {id: this.id}, collection: this.collection}).then(r => {
-
         this.item = r.item;
-        this.http = this.http_files+protocol+'/'+way;
-
         cb(r.item);
         k(r.item);
       });
@@ -110,7 +154,7 @@ export default class Link_mongo{
         (r.items || []).forEach(item => {
           let link = new Link_mongo(this.protocol +'://'+ this.domain + '/' + this.collection + '#' + item.id);
           link.item = item;
-          
+
           links.push(link);
         });
         cb(links);

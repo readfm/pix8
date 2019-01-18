@@ -81,7 +81,8 @@ window.Pix8 = {
 
 		carousel.$t.insertAfter('#pix8-header');
 
-		this.onSite(this.getUrl());
+    this.onSite();
+		//this.onSite(this.getUrl());
 
 		Pix8.resize();
   },
@@ -125,32 +126,6 @@ window.Pix8 = {
     $browser.load(ev => {
       console.log(ev);
 
-    });
-  },
-
-  onSite(url){
-    var link = this.getLink(url);
-
-    var carousel = this.carousel;
-    link.load(item => {
-      $('#pix8-url').val(url);
-      $('#browser-window').attr('src', url);
-      carousel.link = link;
-
-      if(item){
-        carousel.load(item);
-      }
-      else{
-        item = {
-          url,
-          owner: Me.link,
-      		time: (new Date()).getTime()
-        }
-
-        link.save(item).then(r => {
-          carousel.load(item);
-        });
-      }
     });
   },
 
@@ -260,7 +235,6 @@ window.Pix8 = {
         name: item.word
       });
 
-
       var $carouselLast = $('#pic > .carousel').last();
 
       carousel.$t.insertAfter($carouselLast[0] || $('#pix8-header'));
@@ -317,11 +291,13 @@ window.Pix8 = {
         Pix8.onSite(this.value);
       }
 
-      var carousel = new Carousel({
-      });
+      var carousel = new Carousel({});
+
       carousel.$t.insertBefore(t.$resize);
       Pix8.resize();
-      carousel.load(this.value);
+
+      var link = Link(this.value);
+      carousel.laylink(link);
 
       this.value = '';
 
@@ -334,8 +310,47 @@ window.Pix8 = {
     this.enableInputDrag();
   },
 
+
+
+  onSite(url){
+
+    var link = Link(url);
+    this.carousel.laylink(link);
+
+    return;
+    var link = Link(url);
+
+    var carousel = this.carousel;
+    link.load(item => {
+      $('#pix8-url').val(url);
+      $('#browser-window').attr('src', url);
+      carousel.link = link;
+
+      if(item){
+        carousel.load(item);
+      }
+      else{
+        item = {
+          url,
+          owner: Me.link,
+      		time: (new Date()).getTime()
+        }
+
+        link.save(item).then(r => {
+          carousel.load(item);
+        });
+      }
+    });
+  },
+
   parseTag(url){
-    
+    var carousel = new Carousel({});
+
+    carousel.$t.insertBefore(this.$resize);
+    Pix8.resize();
+
+    var link = Link(url);
+    carousel.laylink(link);
   },
 
   onPlus: {},

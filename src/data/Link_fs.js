@@ -4,7 +4,6 @@ export default class Link_fs{
 
     this.supports = ['fs'];
 
-
     if(url.indexOf('://')){
       var [protocol, way] = url.split('://');
       this.protocol = protocol;
@@ -27,6 +26,7 @@ export default class Link_fs{
         else{
           this.domain = this.host;
           this.port = 4000;
+          this.host = this.domain + ':' + this.port;
         }
 
         this.path = way.substr(sep+1);
@@ -43,14 +43,11 @@ export default class Link_fs{
 
     this.collection = this.p[0];
 
-    this.http = 'http://'+this.host+':3000/fs/'+way.replace(/^\/|\/$/g, '').split('/').slice(1).join('/');
-    console.log(this.http);
+    this.http = 'http://'+Cfg.host+':'+Cfg.port+'/'+protocol+'/'+way;
   }
 
-  W(m){
-    return new Promise((ok, no) => {
-      this.constructor.servers.connect(this.domain + ':' + this.port).then(ws => ws.send(m, r => ok(r)));
-    });
+  W(m, cb){
+    this.constructor.servers.connect(this.host).then(ws => ws.send(m, cb));
   }
 
   update(set){
@@ -66,18 +63,83 @@ export default class Link_fs{
     });
   }
 
-  download(url){
-    return new Promise((ok, no) => {
-      this.W({cmd: 'get', link: this.link, url}, r => {
-        r.done?ok():no();
+  set(set){
+    this.W({
+      cmd: 'set',
+      path: this.path,
+      set
+    });
+  }
+
+  download(cb){
+    this.constructor.servers.connect(this.host).then(ws => {
+      ws.download(this.path).then(function(data, file){
+        cb(data, file);
       });
     });
+  }
+
+  upload_url(url, name){
+    var path = url;
+    if(name){
+      var p = path.split('/');
+      p.pop();
+      p.push(name);
+      path = p.join('/');
+    }
+
+    return new Promise((ok, no) => {
+      this.constructor.servers.connect(this.host).then(ws => {
+        this.W({
+          cmd: 'fs.download',
+          url,
+          path: this.path
+        }, r => {
+          r.done?ok(r):no(r);
+        });
+      });
+    });
+  }
+
+  upload(data){
+    return new Promise((ok, no) => {
+      this.load(item => {
+        this.constructor.servers.connect(this.host).then(ws => {
+          ws.upload(data, file => {
+            console.log(file);
+            ok(file);
+          }, {path: this.path});
+        });
+      });
+    });
+  }
+
+  order(links){
+    var children = [];
+    links.forEach(link => {
+      console.log(this, link,
+        this.protocol+' == '+link.protocol,
+        this.host+' == '+link.host,
+        this.path+' == '+link.path
+      );
+
+      var p = link.url.split('/');
+      p.pop();
+      var folder = p.join('/').replace(/^\/|\/$/g, '');
+
+      var isParent = (this.url.replace(/^\/|\/$/g, '') == folder);
+      console.log(this.url.replace(/^\/|\/$/g, '')+' == '+folder);
+
+      children.push(isParent?link.name:link.url);
+    });
+
+    this.set({children});
   }
 
   save(item){
     if(!item.id) item.id = this.id;
     return new Promise((ok, no) => {
-      this.W({cmd: 'save', item, collection: this.collection}).then(r => {
+      this.W({cmd: 'save', item, collection: this.collection}, r => {
         this.item = item;
         ok(item);
       });
@@ -96,29 +158,83 @@ export default class Link_fs{
   }
 
   load(cb){
-    this.W({
-    	cmd: 'fs.info',
-    	path: this.path
-    }).then(r => {
-      if(r.info){
-        this.info = r.info;
-        this.item = this.format(r.info);
-        cb(this.item);
-      }
+    var itm = this.item;
+    if(itm){
+      if(itm instanceof Promise)
+        return itm.then(item => cb(item));
+      return cb(itm);
+    }
+
+    this.item = new Promise((k, n) => {
+      this.W({
+        cmd: 'fs.info',
+        path: this.path
+      }, r => {
+        if(r.info){
+          this.info = r.info;
+          this.item = this.format(r.info);
+
+          if(this.item.type == 'directory'){
+            this.W({
+              cmd: 'get',
+              path: this.path,
+            }, r => {
+              $.extend(this.item, r.item);
+              cb(this.item);
+              k(this.item);
+            });
+          }
+          else{
+            cb(this.item);
+            k(this.item);
+          }
+        }
+      });
     });
   }
 
   children(cb){
-    this.W({
-      cmd: 'fs.list',
-      path: this.path
-    }).then(r => {
-      var links = [];
-      (r.list || []).forEach(name => {
-        let link = new Link_fs(this.protocol +'://'+ this.domain + '/' + this.uri + '/' + name);
-        links.push(link);
+    this.load(item => {
+      this.W({
+        cmd: 'fs.list',
+        path: this.path
+      }, r => {
+        var links = [],
+            sub = {};
+
+        (r.list || []).forEach(name => {
+          let link = sub[name] = new Link_fs(this.protocol +'://'+ this.domain + '/' + this.uri + '/' + name);
+          links.push(link);
+        });
+
+        if(item && item.children){
+          var newLinks = [];
+          item.children.forEach(url => {
+            var link = (url.indexOf('://')+1)?
+              L(url):
+              new Link_fs(this.protocol +'://'+ this.domain + '/' + this.uri + '/' + url);
+
+            var indx = r.list.indexOf(url);
+            if(indx+1){
+              r.list.splice(indx, 1);
+              newLinks.push(link);
+            }
+            else
+            if(url.indexOf('://')+1)
+              newLinks.push(link);
+          });
+
+          (r.list || []).forEach(name => {
+            let link = new Link_fs(this.protocol +'://'+ this.domain + '/' + this.uri + '/' + name);
+            newLinks.push(link);
+          });
+
+          cb(newLinks);
+          return;
+        }
+
+        cb(links);
       });
-      cb(links);
     });
   }
 
