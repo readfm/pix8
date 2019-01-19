@@ -84,6 +84,20 @@ global.SOCKET_prototype = {
 };
 
 
+var createSession = function(sid){
+	var sid = sid || randomString(12);
+	var session = Sessions[sid] = {
+		created: (new Date).getTime(),
+		sockets: [],
+		sid: sid,
+		db: {
+			onSave: [],
+			onUpdate: []
+		}
+	};
+	return sid;
+};
+
 global.SOCKET = function(ws){
 	_.extend(ws, SOCKET_prototype);
 	if(
@@ -93,7 +107,7 @@ global.SOCKET = function(ws){
 		ws.session = Sessions[ws.get.sid || ws.cookie.sid];
 
 	if(!ws.session){
-		var sid = acc.createSession();
+		var sid = createSession();
 		ws.session = Sessions[sid];
 	}
 

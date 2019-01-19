@@ -1,35 +1,25 @@
 http:
-  port: 3000
+  port: 4251
   main: "localhost"
 
+localhost:
+  path: '../'
+
 ws:
-  port: 4000
+  port: 4252
 
 https:
   port: 443
 
-password: "meh69"
+password: "abc"
 
 production: false
-
-authorize:
-  loginKey: 65HQ7YysY2
-  transactionKey: 9Hm6356j5jLz6QtP
-
 modules:
   - functions
-  - system
   - query
   - site
-  - acc
   - socket
   - fs
-  - collections
-  - tree
-  - youtube
-  - authorize
-  - mail
-  - givhub
 
 loadSet:
   - lastSync
@@ -39,15 +29,12 @@ fs:
 
 path:
   modules: './modules/'
-  files: './www/files/'
-  tmp: './www/tmp/'
+  files: '../www/files/'
+  tmp: '../www/tmp/'
   ffmpeg: "./bin/ffmpeg.exe"
   ffprobe: "C:/lib/ffmpeg/bin/ffprobe.exe"
   youtube: './files/tube/'
   certificates: 'certificates/'
-
-
-templates_path: './templates/'
 
 devMode: true
 currency: EUR
@@ -56,57 +43,3 @@ lang: en
 key: mk
 
 wait: false
-
-email:
-   admin: "Mantas <mntask@gmail.com>"
-   sender: "Mantas <mntask@gmail.com>"
-   host: smtp.sendgrid.net
-   user: apikey
-   password: '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'
-   ssl: true
-   port: 465
-   regSubject: "Registration"
-   reactiveSubject: "Activation"
-   sidSubject: "Lost password request"
-
-acc:
-  captcha: false
-  emailConfirm: false
-
-mongodb:
-  path: mongodb://127.0.0.1:27017/pineal
-  url: mongodb://127.0.0.1:27017
-  name: pineal
-  apath: mongodb://io.cx:27017/ggif
-  journal: true
-  collections: [acc, files, tree, neuro, dana, pix8, thumbs, orders, scores, catalog, stories]
-
-givhub:
-  games:
-    scratch:
-      prizes_tid: 77xslvsl
-    order:
-      words_id: 3ecidu0y
-      prize: 84id73ie
-      bigPrize: qole39u9
-
-tingodb:
-  path: './data'
-  collections: []
-
-trusted_emails: [mntask@gmail.com]
-
-social:
-   -
-      service: twitter
-      id: naTOWzhV7YCzoxuI4XmFl2ZLx
-      secret: ivVEgcamqovHDKtoRtlB1uGgnmHdqh9YX3u1Fq0Y8xleEaPtfH
-      extendUserProfile: true
-   -
-      service: 'facebook'
-      id: '190457318117099'
-      secret: 2a615352fc0a54ab52489daedbaee7b8
-   -
-      service: 'google'
-      id: 314225556856-sagu098bq3mdralbhb7ta9jp993kqe2k.apps.googleusercontent.com
-      secret: Md2iSYbdvae5XdXdzYGnwnAys

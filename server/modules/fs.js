@@ -22,8 +22,6 @@ global.FS = {
 	},
 
 	locations: {},
-
-	collection: db.collection(cfg.fs.collection)
 }
 
 global.SAVE = FS.locations;
@@ -275,8 +273,70 @@ S['fs.clone'] = function(m, ws){
 	});
 }
 
-S['fs.download'] = function(m, ws){
-	if(typeof m.url !== 'string') return RE[m.cb]({error: 'no url'});
+const Path = require('path');
+
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+S.set = S.get = function(m, ws, cb){
+	var user = ws.session.user;
+
+	if(m.path){
+		var stats = fs.lstatSync(m.path),
+				isDir = stats.isDirectory();
+
+		var file_path = isDir?
+			Path.join(m.path, Cfg.fs.folder.item):
+			m.path;
+
+
+		var adapter = new FileSync(file_path);
+		var dbl = low(adapter);
+	}
+
+	if(m.cmd == 'get'){
+		if(m.filter || m.id){
+			var filter = _.extend({}, m.filter, {});
+			if(m.id) filter.id = m.id;
+
+			var collection = coll.list[m.collection || coll.main];
+			if(!collection) return;
+
+			collection.find(filter).toArray(function(err, data){
+				if(err || !data || !data[0]) return cb({err});
+
+				var item = data[0];
+				//if(!user || !user.super) cleanItem(item);
+				cb({item});
+			});
+		}
+		else{
+			console.log(dbl);
+			var item = m.way?
+				dbl.get(m.way).value():
+				dbl.getState();
+
+			cb({item});
+		}
+	}
+
+	if(m.cmd == 'set'){
+		dbl.defaults({ children: [], count: 0 });
+
+		if(m.set){
+			var keys = Object.keys(m.set);
+			keys.forEach(key => dbl.set(key, m.set[key]).write());
+		}
+
+		if(m.way && m.value)
+			dbl.set(m.way, m.value).write();
+
+		cb({done: 1});
+	}
+};
+
+S['fs.download'] = function(m, ws, cb){
+	if(typeof m.url !== 'string') return cb({error: 'no url'});
 
 	var tmpName = randomString(20),
 		tmpPath = Cfg.path.files+tmpName,
@@ -293,8 +353,15 @@ S['fs.download'] = function(m, ws){
 
 				var user = ws.session.user;
 				if(user) file.owner = user.id;
+				if(m.name) file.name = m.name;
 				file.created = (new Date()).getTime();
 
+				// to save as file
+				if(m.path){
+					fs.renameSync(tmpPath, m.path);
+					cb({done: 1});
+				}
+				else
 				db.collection(cfg.fs.collection).insert(file, {safe: true}, function(e, r){
 					if(!r.ops[0]) return;
 					fs.renameSync(tmpPath, Cfg.path.files + file.id);
@@ -302,22 +369,6 @@ S['fs.download'] = function(m, ws){
 				});
 			});
 		});
-	});
-};
-
-
-S.get = function(m, ws){
-	if(!m.filter) return;
-	var filter = _.extend(m.filter, {});
-
-
-	var collection = coll.list[m.collection || coll.main];
-	if(!collection) return;
-
-	collection.find(filter).toArray(function(err, data){
-		if(err || !data || !data[0]) console.log(err);
-		if(m.cb)
-			RE[m.cb]({item: data[0]});
 	});
 };
 

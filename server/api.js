@@ -69,30 +69,34 @@ var Pineal = {
 	}
 }
 
-if(Cfg.email)
-	global.email = require("emailjs").server.connect(Cfg.email);
 
-if(Cfg.mongodb){
-	const MongoClient = global.mongo = require('mongodb').MongoClient;
+Pineal.loadModules();
+sys.emit('loaded');
 
-  MongoClient.connect(Cfg.mongodb.url, {useNewUrlParser: true }).then((client, no) => {
-		console.log(client);
-		global.db = client.db(Cfg.mongodb.name);
 
-		let tree = db.collection('tree');
+if(Cfg.http){
+	global.http = require('http').createServer(query.serv);
 
-		Pineal.loadModules();
-		sys.emit('loaded');
+	http.listen(Cfg.http.port, function(err){
+		if(err) return cb(err);
 
-		socket.run(Cfg.ws.port);
+		var uid = parseInt(process.env.SUDO_UID);
+		if(uid) process.setuid(uid);
 
-		if(Cfg.https && global.Security){
-			var https = require('https').createServer(Security.https_options, query.serv);
-			https.listen(Cfg.https.port);
-			socket.run(https);
-		}
+		console.log(clc.green.bold('http server is running on :') + Cfg.http.port);
 	});
+
+	socket.run(http);
 }
+
+if(Cfg.https && global.Security){
+	var https = require('https').createServer(Security.https_options, query.serv);
+	https.listen(Cfg.https.port);
+	socket.run(https);
+}
+
+
+
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', reason.stack || reason);

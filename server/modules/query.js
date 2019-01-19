@@ -207,12 +207,14 @@ global.query = {
 	},
 
 	onDomain: function(q){
-		log(
+		/*log(
 			clc.blue.bold(q.req.connection.remoteAddress + "")+' '+
 			(q.date.getHours()+':'+q.date.getMinutes())+' '+
 			clc.red.italic(q.domain)
-		);
-		query.pump(q, './static/wrongDomain.html');
+		);*/
+
+		var path = (q.path || '').replace(/\/\.+/g,'');
+		query.pump(q, Cfg.localhost.path + '/' + path);
 	},
 
 	ipv4Number: function (ip){

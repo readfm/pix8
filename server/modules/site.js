@@ -95,18 +95,3 @@ _.extend(Site.prototype, {
 		q.res.end(cont);
 	}
 });
-
-console.log(Cfg);
-
-if(Cfg.http){
-	global.http = require('http').createServer(query.serv);
-
-	http.listen(Cfg.http.port, function(err){
-		if(err) return cb(err);
-
-		var uid = parseInt(process.env.SUDO_UID);
-		if (uid) process.setuid(uid);
-
-		console.log(clc.green.bold('http server is running on :') + Cfg.http.port);
-	});
-}

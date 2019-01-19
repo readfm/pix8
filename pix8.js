@@ -313,7 +313,6 @@ window.Pix8 = {
 
 
   onSite(url){
-
     var link = Link(url);
     this.carousel.laylink(link);
 

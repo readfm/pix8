@@ -1,5 +1,5 @@
 window.Cfg = {
-  port: 4000,
+  port: 4251,
   host: '127.0.0.1',
   files: 'http://127.0.0.1:5030/items/',
   files: 'http://files.lh/',
