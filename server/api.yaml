@@ -31,8 +31,8 @@ fs:
 
 path:
   modules: './modules/'
-  files: './upl/'
-  tmp: './tmp/'
+  files: 'C:/8/upl/'
+  tmp: 'C:/8/tmp/'
   ffmpeg: "./bin/ffmpeg.exe"
   ffprobe: "C:/lib/ffmpeg/bin/ffprobe.exe"
   youtube: './tube/'

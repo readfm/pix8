@@ -193,6 +193,7 @@ S['saveStream'] = function(m, ws, cb){
 
 			_.extend(file, set);
 
+
 			fs.renameSync(ws.stream.path, file.path || (Cfg.path.files + file.id));
 			C[cfg.fs.collection].update({id: file.id}, {$set : set}, function(){
 				if(m.cb) RE[m.cb]({file: file, name: tmpName});
@@ -237,7 +238,7 @@ S.download = function(m, ws){
 		var file = m;//data[0];
 		var path = file.path || (Cfg.path.files + file.id);
 
-		fs.ensureDirSync(Path.dirname(path));
+		fs.ensureDirSync(Cfg.path.files);
 
 		var readStream = fs.createReadStream(path);
 
@@ -350,6 +351,8 @@ S['fs.download'] = function(m, ws, cb){
 	var tmpName = randomString(20),
 		tmpPath = Cfg.path.files+tmpName,
 		tmpStream = fs.createWriteStream(tmpPath, {flags: 'w'});
+
+	fs.ensureDirSync(Cfg.path.files);
 
 	var mod = require(m.url.indexOf('https:')==0?'https':'http');
 	var request = mod.get(m.url, function(response){
