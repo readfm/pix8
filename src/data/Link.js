@@ -9,9 +9,7 @@ window.Link = window.L = function(u){
   if(typeof u == 'string'){
     var url = u;
 
-    console.log(u);
-
-    if(url.indexOf('://')){
+    if(url.indexOf('://') + 1){
       let [protocol, way] = url.split('://');
 
       if(protocol == 'mongo')
@@ -19,6 +17,11 @@ window.Link = window.L = function(u){
 
       if(protocol == 'fs')
         return new Link_fs(url);
+    }
+    else{
+      if(u[0] == '/')
+        return new Link_fs('fs://localhost/C:/8/images/'+u.substr(1))
+      return new Link_mongo('mongo://io.cx/pix8?owner=dukecr&type=view&path='+u);
     }
   }
   else

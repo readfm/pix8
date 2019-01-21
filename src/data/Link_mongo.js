@@ -17,6 +17,13 @@ export default class Link_mongo{
           way = way.substr(0, hash_index);
         }
 
+        var query_index = way.indexOf('?');
+        if(query_index + 1){
+          this.query_string = way.substr(query_index+1);
+          way = way.substr(0, query_index);
+          this.query = this.parseQuery(this.query_string);
+        }
+
         if(way){
           var sep = way.indexOf('/');
           this.domain = this.hash = way.substr(0, sep);
@@ -27,9 +34,9 @@ export default class Link_mongo{
         	this.p = this.uri.split(/[\/]+/);
 
           this.ext = this.path.split('.').pop();
-        }
 
-        this.collection = this.p[0];
+          this.collection = this.p[0];
+        }
       }
     }
     else if(typeof u == 'object'){
@@ -40,9 +47,20 @@ export default class Link_mongo{
     this.load_filers();
   }
 
+  parseQuery(queryString){
+      var query = {};
+      var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+      for (var i = 0; i < pairs.length; i++) {
+          var pair = pairs[i].split('=');
+          query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+      }
+      return query;
+  }
+
   load_filers(){
     this.fileLinks = {
       'io.cx': 'http://f.io.cx/',
+      'th.ai': 'http://f.io.cx/',
       'manager.lh': 'http://files.lh/',
       'localhost': 'http://files.lh/',
     };
@@ -132,8 +150,10 @@ export default class Link_mongo{
       return cb(itm);
     }
 
+    var filter = this.id?{id: this.id}:this.query;
+
     this.item = new Promise((k, n) => {
-      this.W({cmd: 'get', filter: {id: this.id}, collection: this.collection}).then(r => {
+      this.W({cmd: 'get', filter, collection: this.collection}).then(r => {
         this.item = r.item;
         cb(r.item);
         k(r.item);

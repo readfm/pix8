@@ -31,7 +31,7 @@ var Query = function(req,res){
 
 	if(this.cookie && this.cookie.sid){
 		this.sid = this.cookie.sid;
-		var ses = acc.sessions[this.cookie.sid];
+		var ses = Sessions[this.cookie.sid];
 		if(ses){
 			this.session = ses;
 			this.user = ses.user;

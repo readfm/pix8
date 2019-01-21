@@ -1,7 +1,7 @@
 global.log = console.log;
 
 global.clc = require('cli-color');
-global._ = require('underscore');
+global._ = require('lodash');
 global.EventEmitter = require('events').EventEmitter;
 
 process.on('uncaughtException', function(err){

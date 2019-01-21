@@ -1,4 +1,5 @@
 var fs = require('fs-extra');
+const Path = require('path');
 
 global.FS = {
 	save: function(f, cb){
@@ -135,9 +136,16 @@ S['fs.info'] = function(m, ws, cb){
 	});
 };
 
+S['fs.mkdir'] = function(m, ws, cb){
+	fs.ensureDir(m.path, err => {
+		cb({err, done: !err});
+	});
+}
+
 S['fs.list'] = function(m, ws, cb){
 	//if(!ws.session.user || !ws.session.user.super) return;
 
+	if(m.mkdirp) fs.ensureDirSync(Path.dirname(m.path));
 	fs.readdir(m.path, function(err, list){
 		cb({err, list});
 	});
@@ -194,6 +202,7 @@ S['saveStream'] = function(m, ws, cb){
 	}
 	else
 	if(m.path){
+		fs.ensureDirSync(Path.dirname(m.path));
 		fs.renameSync(ws.stream.path, m.path);
 		cb({name: tmpName, file: fs.statSync(m.path)});
 		return;
@@ -227,6 +236,8 @@ S.download = function(m, ws){
 
 		var file = m;//data[0];
 		var path = file.path || (Cfg.path.files + file.id);
+
+		fs.ensureDirSync(Path.dirname(path));
 
 		var readStream = fs.createReadStream(path);
 
@@ -272,8 +283,6 @@ S['fs.clone'] = function(m, ws){
 		});
 	});
 }
-
-const Path = require('path');
 
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');

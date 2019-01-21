@@ -3,6 +3,7 @@ export default class Link_fs{
     this.url = this.link = url;
 
     this.supports = ['fs'];
+    this.children_key = 'children';
 
     if(url.indexOf('://')){
       var [protocol, way] = url.split('://');
@@ -25,7 +26,7 @@ export default class Link_fs{
         }
         else{
           this.domain = this.host;
-          this.port = 4000;
+          this.port = Cfg.port;
           this.host = this.domain + ':' + this.port;
         }
 
@@ -34,16 +35,13 @@ export default class Link_fs{
         this.uri = this.path.replace(/^\/+|[^A-Za-z0-9_.:\/~ @-]|\/+$/g, '');
 
       	this.p = this.uri.split(/[\/]+/);
-
-        this.ext = this.path.split('.').pop();
+        this.ext = this.path.split('.').pop().toLowerCase();
 
         this.name = this.path.split('/').pop();
       }
     }
 
-    this.collection = this.p[0];
-
-    this.http = 'http://'+Cfg.host+':'+Cfg.port+'/'+protocol+'/'+way;
+    this.http = 'http://'+Cfg.host+':'+Cfg.port+'/'+protocol+'/'+this.path;
   }
 
   W(m, cb){
@@ -106,7 +104,9 @@ export default class Link_fs{
       this.load(item => {
         this.constructor.servers.connect(this.host).then(ws => {
           ws.upload(data, file => {
-            console.log(file);
+            this.info = file;
+            this.item = this.format(file);
+            console.log(this.item);
             ok(file);
           }, {path: this.path});
         });
@@ -128,12 +128,13 @@ export default class Link_fs{
       var folder = p.join('/').replace(/^\/|\/$/g, '');
 
       var isParent = (this.url.replace(/^\/|\/$/g, '') == folder);
-      console.log(this.url.replace(/^\/|\/$/g, '')+' == '+folder);
 
       children.push(isParent?link.name:link.url);
     });
 
-    this.set({children});
+    var set = {};
+    set[this.children_key] = children;
+    this.set(set);
   }
 
   save(item){
@@ -159,6 +160,7 @@ export default class Link_fs{
 
   load(cb){
     var itm = this.item;
+    console.log(itm);
     if(itm){
       if(itm instanceof Promise)
         return itm.then(item => cb(item));
@@ -168,6 +170,7 @@ export default class Link_fs{
     this.item = new Promise((k, n) => {
       this.W({
         cmd: 'fs.info',
+        mkdirp: true,
         path: this.path
       }, r => {
         if(r.info){
@@ -189,6 +192,8 @@ export default class Link_fs{
             k(this.item);
           }
         }
+        else
+          cb();
       });
     });
   }
@@ -197,7 +202,8 @@ export default class Link_fs{
     this.load(item => {
       this.W({
         cmd: 'fs.list',
-        path: this.path
+        path: this.path,
+        mkdirp: true
       }, r => {
         var links = [],
             sub = {};
@@ -207,9 +213,9 @@ export default class Link_fs{
           links.push(link);
         });
 
-        if(item && item.children){
+        if(item && item[this.children_key]){
           var newLinks = [];
-          item.children.forEach(url => {
+          item[this.children_key].forEach(url => {
             var link = (url.indexOf('://')+1)?
               L(url):
               new Link_fs(this.protocol +'://'+ this.domain + '/' + this.uri + '/' + url);

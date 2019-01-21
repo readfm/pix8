@@ -26,14 +26,16 @@ loadSet:
 
 fs:
   collection: 'files'
+  folder:
+    item: 'pix8.json'
 
 path:
   modules: './modules/'
-  files: '../www/files/'
-  tmp: '../www/tmp/'
+  files: './upl/'
+  tmp: './tmp/'
   ffmpeg: "./bin/ffmpeg.exe"
   ffprobe: "C:/lib/ffmpeg/bin/ffprobe.exe"
-  youtube: './files/tube/'
+  youtube: './tube/'
   certificates: 'certificates/'
 
 devMode: true

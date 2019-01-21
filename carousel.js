@@ -1127,7 +1127,6 @@ Carousel.prototype = {
 		return $item;
 	},
 
-<<<<<<< HEAD
 		//will create an element with all events and puts it into its place
 	add(link, $before){
 		return new Promise((ok, no) => {
@@ -1194,27 +1193,6 @@ Carousel.prototype = {
 						this.laylink(lnk);
 					}
 				});
-=======
-
-	laylink(lnk){
-		this.$t.children('.thumb').remove();
-
-		lnk.children(links => {
-      links.forEach(link => {
-				console.log(link);
-        link.load(item => {
-					console.log(item);
-					item.src = link.http;
-					item.type = 'image';
-					let $item = pix.build(item, link);
-
-					this.$t.append($item);
-
-					this.resize($item);
-					this.supportEvents($item);
-        });
-      });
->>>>>>> 43b4c288ee1c4709e67f005ff4ff7c2d7f88c951
 		});
 	},
 
