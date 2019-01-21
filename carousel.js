@@ -99,23 +99,6 @@ Carousel.prototype = {
 
 	},
 
-	//will create an element with all events and puts it into its place
-	add: function(url, $before){
-		if(!url) return;
-		$(this.$t).children('.clone').remove();
-
-		var qs = parseQS(decodeURIComponent(url));
-
-		if(qs && qs.imgurl)
-			url = qs.imgurl;
-
-		var $thumb = this.createThumb(url);
-		$thumb[$before?'insertBefore':'appendTo']($before || this.$t).data({src: url});
-
-		this.supportEvents($thumb);
-		return $thumb;
-	},
-
 	//take url and iserts new item into DB
 	include: function(url, $thumbOn){
 		if(!url) return;
@@ -143,7 +126,7 @@ Carousel.prototype = {
 		var save = function(){
 			var link = new Link(App.items_link + randomString(6) + '.yaml');
 			link.save(item).then(() => {
-				var $item = pix.build(item, link.url);
+				var $item = pix.build(item, {link});
 
 				if($thumbOn && $thumbOn.length)
 					$item.insertBefore($thumbOn);
@@ -370,14 +353,10 @@ Carousel.prototype = {
 			true //this.getOwner() == User.name
 		);
 
-		console.log(okDrag);
-
 		$thumb.drag("init", function(ev, dd){
 			console.log(dd);
 		}, {click:true}).drag("start", function(ev, dd){
 			var o = $(this).offset();
-
-			console.log(o);
 
 			$(this).data('_pos', o.left+'x'+o.top);
 			dd.startParent = this.parentNode;
@@ -453,7 +432,6 @@ Carousel.prototype = {
 						$thumbs = $thumb.parent().children();
 
 					var $newGap = $thumbs.eq(newIndex + (dd.deltaY>0?1:(-1)));
-
 
 
 					$(dd.proxy).remove();
@@ -546,9 +524,11 @@ Carousel.prototype = {
 			var carousel = $thumb.parent()[0].carousel;
 			if(t.$t[0] != carousel.$t[0]){
 				var thumb = $thumb.data();
+
 				var $newThumb = $thumb.clone(true);
 				$thumb.replaceWith($newThumb);
 				$thumb.data(thumb);
+				$newThumb[0].elem = $thumb[0].elem;
 
 				var $before = t.$t.children('.thumb').eq(dd.index-1);
 				if($before.length)
@@ -561,11 +541,11 @@ Carousel.prototype = {
 
 				carousel.resize($newThumb);
 				carousel.supportEvents($newThumb);
-				carousel.updateView();
+				carousel.order();
 			}
 
 			if(!pix.slide)
-				t.updateView();
+				t.order();
 
 
 			var parent = $thumb.removeClass('drop').parent()[0];
@@ -588,7 +568,6 @@ Carousel.prototype = {
 
 				var bfr = $(this).index() <= $(dd.drag).index();
 
-				console.log($(this).index()+' <= '+$(dd.drag).index());
 				$(dd.drag)['insert'+((bfr)?'Before':'After')](this);
 
 				dd.update();
@@ -841,6 +820,16 @@ Carousel.prototype = {
 		console.log(owner);
 
 		return owner;
+	},
+
+	order(){
+		var links = [];
+
+		this.$t.children('.thumb:not(.clone)').each(function(){
+			links.push(this.elem.link);
+		});
+
+		this.lnk.order(links);
 	},
 
 	// save list of id;s into database
@@ -1138,6 +1127,74 @@ Carousel.prototype = {
 		return $item;
 	},
 
+<<<<<<< HEAD
+		//will create an element with all events and puts it into its place
+	add(link, $before){
+		return new Promise((ok, no) => {
+			console.log(link, $before);
+			if(
+				link.protocol == 'fs' && (
+					!link.ext ||
+					['jpg', 'jpeg', 'gif', 'svg', 'png'].indexOf(link.ext) < 0
+				)
+			) return no();
+
+			var $load = $('<span>', {class: 'load'});
+			if($before && $before.hasClass('thumb')) $load.insertBefore($before);
+			else $load.appendTo(this.$t);
+
+			link.load(item => {
+				console.log(item);
+				if(!item){
+					$load.remove();
+					no();
+					return;
+				}
+
+				item.src = item.src || link.http || 'http://f.io.cx/'+item.file;
+				item.type = 'image';
+
+				console.log(item);
+
+				let $item = pix.build(item, {link});
+
+				$load.replaceWith($item);
+
+				this.resize($item);
+				this.supportEvents($item);
+
+				ok($item);
+			});
+		});
+	},
+
+
+	laylink(lnk){
+		if(!lnk) return;
+
+		this.link = lnk;
+
+		this.$t.children('.thumb').remove();
+
+		this.lnk = lnk;
+
+		lnk.children_key = 'images';
+		lnk.load(item => {
+			if(item)
+				lnk.children(links => {
+		      links.forEach(link => this.add(link));
+				});
+			else if(lnk.protocol == 'fs')
+				lnk.W({
+					cmd: 'fs.mkdir',
+					path: lnk.path
+				}, r => {
+					if(r.done){
+						delete lnk.item;
+						this.laylink(lnk);
+					}
+				});
+=======
 
 	laylink(lnk){
 		this.$t.children('.thumb').remove();
@@ -1157,6 +1214,7 @@ Carousel.prototype = {
 					this.supportEvents($item);
         });
       });
+>>>>>>> 43b4c288ee1c4709e67f005ff4ff7c2d7f88c951
 		});
 	},
 
@@ -1229,8 +1287,65 @@ Carousel.prototype = {
 		$thumb = carousel.createThumb(data._id,  'http://img.youtube.com/vi/'+video.id+'/default.jpg').appendTo(cont).data('url', url);
 	},
 
+	url_info(url){
+		var qs = parseQS(decodeURIComponent(url));
+		if(qs && qs.imgurl)
+			return {
+				url: qs.imgurl,
+				type: 'image',
+				name: randomString(5)+'.jpg'
+			};
+
+		if(url.indexOf('imgur.com')+1){
+			var parts = url.replace(/^(https?|ftp):\/\//, '').split('/'),
+				ext = ''+url.split('.').pop();
+
+
+			if(['jpg', 'jpeg', 'gif', 'png'].indexOf(ext)+1)
+				return {
+					type: 'image',
+					url, ext,
+					name: url.split('/').pop()
+				};
+
+			return {
+				url: 'http://i.imgur.com/'+parts[2]+'.jpg',
+				type: 'image',
+				name: parts[2]+'.jpg'
+			};
+		}
+		else
+		if(url.indexOf('upload.wikimedia.org')+1 && url.indexOf('/thumb/')+1){
+			var urlA = url.split('/');
+			urlA.pop();
+			urlA.splice(urlA.indexOf('thumb'), 1);
+			url = urlA.join('/');
+
+			return {
+				url,
+				type: 'image',
+				ext: 'jpg',
+				name: randomString(5)+'.jpg'
+			};
+		}
+		else {
+			var p = url.split('/'),
+					name = p.pop(),
+					ext = name.split('.').pop();
+
+			if(name.length > 35)
+				name = randomString(5);
+
+			return {
+				name,
+				url
+			};
+		};
+	},
+
+
 	// make it possible to drag&drop local files
-	allowUpload: function(){
+	allowUpload(){
 		var t = this;
 		function cancel(e){
 			if (e.preventDefault) e.preventDefault(); // required by FF + Safari
@@ -1249,40 +1364,42 @@ Carousel.prototype = {
 
 		this.$t[0].addEventListener('dragover', cancel);
 		this.$t[0].addEventListener('dragenter', cancel);
-		this.$t[0].addEventListener('drop', function(ev){
-			/*] */
-			console.log(ev);
-			console.log(ev.dataTransfer.files);
+		this.$t[0].addEventListener('drop', ev => {
+			var $thumb = $(ev.target);
+			if(!$thumb.hasClass('.thumb'))
+				$thumb = $thumb.parent();
+
+			if(!$thumb.hasClass('thumb'))
+				delete $thumb;
+
 
 			if(ev.dataTransfer.files.length)
-				return t.upload(ev);
+				return this.upload(ev, $thumb);
 
 			var txt = ev.dataTransfer.getData('URL') || ev.dataTransfer.getData('Text');
 
-			txt = t.getImgUrl(Pix.parseURL(txt));
-
-			if(ev.dataTransfer && ev.dataTransfer.files[0])
-				txt = ev.dataTransfer.files[0].path;
+			var info = this.url_info(txt);
 
 			console.log(txt);
 			console.log(ev.dataTransfer.files);
 
 
-			var $thumb = $(ev.target);
-			if(!$thumb.data('id'))
-				$thumb = $thumb.parents('span');
-
-			var name = txt.split(/(\\|\/)/g).pop();
 			/*
 			if(Pix.files.indexOf(name)<0)
 				Pix.send({cmd: 'download', url: txt});
 			*/
 
-			if(true || isURL(txt)){
-				(t.cfg.onAdd || $.noop)(txt, $thumb);
-			}
-			else{
-				(t.cfg.onText || $.noop)(txt, $thumb);
+
+			if(this.link.protocol == 'mongo')
+				this.include(txt, $thumb);
+
+			if(this.link.protocol == 'fs'){
+				var link_file = new Link(this.link.url + '/' + info.name);
+				link_file.upload_url(info.url).then(r => {
+					this.add(link_file, $thumb).then($item => {
+						this.order();
+					});
+				});
 			}
 
 			ev.preventDefault();
@@ -1291,7 +1408,7 @@ Carousel.prototype = {
 	},
 
 	// will put uploaded file into IPFS
-	upload: function(ev){
+	upload_ipfs: function(ev){
 		var carousel = this;
 
 		var files = ev.dataTransfer.files; // FileList object
@@ -1339,8 +1456,6 @@ Carousel.prototype = {
 	*/
 
 	upload: function(ev, $before){
-		console.log(ev);
-
 		var files;
 		if(ev.type == 'drop')
 			files = ev.dataTransfer.files; // FileList object
@@ -1354,6 +1469,8 @@ Carousel.prototype = {
 			// Only process image files.
 			console.log(f);
 
+			var fileName = f.name;
+
 
 			if (f.kind === 'file'){
 				f = f.getAsFile();
@@ -1364,77 +1481,25 @@ Carousel.prototype = {
 				continue;
 
 			var reader = new FileReader();
+			reader.onload = (ev2) => {
+				if(this.link.protocol == 'fs'){
+					var link_file = new Link(this.link.url + '/' + fileName);
+					link_file.upload(ev2.target.result).then(r => {
 
-			var lf = f;
-			// Closure to capture the file information.
-			reader.onload = function(ev1){
-				var item = {
-					src: ev1.target.result,
-					type: 'image'
-				};
-
-				var $item = Pix.build(item);
-				$item.addClass('uploading');
-
-				if($before)
-					$item.insertBefore($before);
-				else
-				if(ev.target.src)
-					$item.insertBefore(ev.target.parentNode);
-				else
-					carousel.$t.append($item);
-
-				carousel.resize($item);
-
-				var reader = new FileReader();
-				reader.onload = function(ev2){
-					ws.upload(ev2.target.result, function(file){
-						if(!file) return $item.remove();
-
-						var img = $item.children('img')[0];
-
-						var item = {
-							src: Cfg.files+file.id,
-							file: file.id,
-							width: img.naturalWidth,
-							height: img.naturalHeight,
-							path: carousel.getPath(),
-							tag: carousel.$tag.val(),
-							href: document.location.href,
-							owner: carousel.getOwner(),
-							type: 'image'
-						};
-
-						ws.send({
-							cmd: 'save',
-							item: item,
-							collection: Cfg.collection
-						}, function(r){
-							if(r.item){
-								Data.items[r.item.id] = r.item;
-								$item.removeClass('uploading');
-								$item.data(r.item);
-								$item.attr({
-									id: 'image-'+r.item.id
-								});
-
-								carousel.resize($item);
-								carousel.supportEvents($item);
-								carousel.updateView();
-							}
+						this.add(link_file, $before).then($item => {
+							this.order();
 						});
 					});
 				}
-				reader.readAsArrayBuffer(lf);
-			};
-			reader.readAsDataURL(f);
+			}
+			reader.readAsArrayBuffer(f);
 		};
 
 		ev.preventDefault();
 		return false;
 	},
 
-	upload: function(ev, $before){
+	uploada: function(ev, $before){
 		var files;
 		if(ev.type == 'drop')
 			files = ev.dataTransfer.files; // FileList object
@@ -1451,7 +1516,6 @@ Carousel.prototype = {
 
 			if (f.kind === 'file'){
 				f = f.getAsFile();
-				console.log(f);
 			}
 
 			if(f.type.match('video.*')){
@@ -1459,7 +1523,6 @@ Carousel.prototype = {
 
 				var reader = new FileReader();
 				reader.onload = function(ev2){
-					console.log(lf);
 					var ext = lf.name.split('.').pop();
 					var id = randomString(6);
 
@@ -1473,10 +1536,9 @@ Carousel.prototype = {
 						};
 
 						var link = new Link(App.items_link + id + '.yaml');
-						console.log(link.url, item);
 						link.save(item).then(itm => {
 							console.log(itm);
-				    	var elem = new Elem(item, {url: link.url});
+				    	var elem = new Elem(item, {url: link.url, link});
 							var $item = elem.$item;
 
 							console.log(elem, $item);

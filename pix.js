@@ -64,9 +64,9 @@ var pix = Pix = {
 
 	},
 
-	build: (item, url) => {
-		var elem = new Elem(item, {url});
-		$(elem.$item).dblclick(ev => {
+	build: (item, cfg) => {
+		var elem = new Elem(item, cfg);
+		$(elem.$item).dblclick(ev => {	
 			require('opn')(elem.item.src);
 		});
 		return elem.$item;

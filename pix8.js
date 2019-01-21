@@ -427,7 +427,7 @@ window.Pix8 = {
       $cont.toggle();
 
       if(!Pix8.initiated){
-        this.createIndex();
+        //this.createIndex();
         //this.initWords();
         this.initSites();
         Pix8.initiated = true;
