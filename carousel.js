@@ -199,11 +199,8 @@ Carousel.prototype = {
 
 					item.title = r.title;
 					img.src = item.src = r.src;
-
-					console.log(item);
 				});
 
-				console.log(item);
 				//alert('Unable to load image');
 				//console.error('Unable to load image: '+url);
 			};
@@ -211,10 +208,8 @@ Carousel.prototype = {
 			img.onload = function(){
 				item.width = img.width;
 				item.height = img.height;
-				console.log('loaded');
 			};
 			img.src = carousel.formatUrl(url);
-			console.log(img.src);
 		}
 			//db.post(item);
 	},
@@ -535,6 +530,30 @@ Carousel.prototype = {
 					$thumb.insertBefore($before);
 				else
 					t.$t.append($thumb);
+
+				console.log(carousel.link, ' != ', t.link);
+				if(
+					carousel.link.protocol != t.link.protocol &&
+					carousel.link.protocol == 'fs'
+				){
+					let link = $thumb[0].elem.link;
+					delete link.item;
+					link.load(item => {
+						console.log(link.http);
+						console.log(item, link);
+						let fileName = link.http.split('/').pop();
+						if(fileName.indexOf('.')<0) fileName = filename+'.jpg';
+						var link_file = new Link(carousel.link.url + '/' + fileName);
+						console.log(link_file);
+						link_file.upload_url(link.http).then(r => {
+							carousel.add(link_file, $newThumb).then($item => {
+								console.log($item);
+								$newThumb.remove();
+								carousel.order();
+							});
+						});
+					});
+				}
 
 				t.supportEvents($thumb);
 
