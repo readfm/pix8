@@ -84,6 +84,8 @@ if(Cfg.http){
 		if(uid) process.setuid(uid);
 
 		console.log(clc.green.bold('http server is running on :') + Cfg.http.port);
+		
+		require('opn')('http://localhost:'+Cfg.http.port);
 	});
 
 	socket.run(http);
