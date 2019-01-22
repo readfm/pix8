@@ -68,10 +68,10 @@ export default class Link_mongo{
 
   update4ws(ws){
     if(!this.http && ws.files)
-      this.http = ws.files;
+      this.http_files = ws.files;
     else
     if(!this.http)
-      this.http = this.fileLinks[this.domain];
+      this.http_files = this.fileLinks[this.domain];
   }
 
   W(m){
@@ -143,6 +143,7 @@ export default class Link_mongo{
   }
 
   load(cb){
+    console.log(this);
     var itm = this.item;
     if(itm){
       if(itm instanceof Promise)
@@ -155,6 +156,8 @@ export default class Link_mongo{
     this.item = new Promise((k, n) => {
       this.W({cmd: 'get', filter, collection: this.collection}).then(r => {
         this.item = r.item;
+        this.http = r.item.src || this.http_files + r.item.file;
+        console.log(r, r.item.src || this.http_files + r.item.file, this);
         cb(r.item);
         k(r.item);
       });
