@@ -3,6 +3,10 @@ window.Gif = function(source, cb){
 	//var id = img.src.split('/').pop();
 
 	this.create();
+
+	if(typeof source == 'string' && source.indexOf('f.io.cx') + 1)
+			source = source.split('/').pop();
+
 	this.load(source).then(function(){
 		t.resize();
 
@@ -30,6 +34,14 @@ $.extend(Gif.prototype, {
 		return new Promise(function(resolve, reject){
 			if(typeof source == 'string' && (source.indexOf('http://') === 0 || source.indexOf('https://') === 0))
 				t.image(source, resolve);
+			else
+			if(source.download)
+				source.download((data, file) => {
+					if(!data) return reject();
+
+					var g = t.g = new GifReader(data);
+					resolve(g);
+				});
 			else
 				t.download(source, resolve);
 		});

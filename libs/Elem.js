@@ -33,6 +33,8 @@ $.extend(module.prototype, {
 			});
 		}
 
+		console.log(item);
+
 		this.file = file;
 
 		var $item = t.$item = $('<span>', {name: this.url, class: 'thumb'});
@@ -60,6 +62,8 @@ $.extend(module.prototype, {
 			if(item.file)
 				item.src = Cfg.files + item.file;
 
+			console.log(item.src);
+
 
 			if(item.video)
 				t.video();
@@ -82,7 +86,8 @@ $.extend(module.prototype, {
 					$item.css({'background-image': "url("+Cfg.thumber+item.src.replace('://', '/')+")"});
 				*/
 
-				t.loadFile(file);
+				console.log(file, ' || ', item);
+				t.loadFile('http://f.io.cx/'+file || item.src);
 			}
 			else
 			if(item.src && item.src.toLocaleLowerCase().endsWith('.gif'))
@@ -273,7 +278,7 @@ $.extend(module.prototype, {
 			//t.resize(this.$item);
 
 
-			console.log(link, url);
+			console.log(t.link, url);
 
 			var carousel = t.$item.parent()[0].carousel;
 
@@ -281,7 +286,7 @@ $.extend(module.prototype, {
 				carousel.resize(t.$item);
 
 			console.log(image);
-			var gif = new Gif(image.src, function(){
+			var gif = new Gif(t.link || image.src, function(){
 				if(!gif.segments)
 					return;
 
@@ -308,7 +313,7 @@ $.extend(module.prototype, {
 			t.$item.append(image);
 		};
 
-		console.log(url);
+		console.dir(url);
 		image.src = url;
 	},
 

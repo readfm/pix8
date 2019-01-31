@@ -100,6 +100,7 @@ export default class Link_mongo{
   download(cb){
     this.load(item => {
       this.constructor.servers.connect(this.domain).then(ws => {
+        console.log(item);
         ws.download(item.file).then(function(data, file){
           cb(data, file);
         });
@@ -204,8 +205,10 @@ export default class Link_mongo{
           items[item.id] = item;
         });
 
+        console.log(list);
         list.forEach(lnk => {
-          let link = (lnk.indexOf('://') + 1)?
+          console.log(lnk);
+          let link = ((''+lnk).indexOf('://') + 1)?
             L(lnk):
             new Link_mongo(this.protocol +'://'+ this.domain + '/' + this.collection + '#' + lnk);
 

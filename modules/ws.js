@@ -124,8 +124,11 @@ WS.prototype = {
 			chunks.push(new Uint8Array(data));
 		};
 
+		console.log(id);
+
 		return new Promise(function(resolve, reject){
-			ws.send({cmd: 'download', id: id}, function(r){
+			ws.send({cmd: 'download', id}, function(r){
+				console.log(r);
 				if(r.error) return reject(Error(r.error));
 
 				var data = new Uint8Array(length),

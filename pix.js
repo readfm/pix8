@@ -60,13 +60,37 @@ var pix = Pix = {
 		return carousel;
 	},
 
+
+	download: function(id, cb){
+		var x = new XMLHttpRequest();
+		x.open('GET', blobchromeextensionurlhere);
+		x.responseType = 'blob';
+		x.onload = function() {
+		    var url = URL.createObjectURL(x.response);
+		    // Example: blob:http%3A//example.com/17e9d36c-f5cd-48e6-b6b9-589890de1d23
+		    // Now pass url to the page, e.g. using postMessage
+		};
+		x.send();
+		return;
+
+		if(typeof ws != "undefined" && ws instanceof WS)
+			ws.download(id, cb);
+		else
+		if(chrome && chrome.runtime)
+			chrome.runtime.sendMessage({cmd: 'download', id: id}, function(r){
+				console.log(URL.revokeObjectURL(r));
+			});
+		else
+			console.error('No way to interact with server');
+	},
+
 	onTag: function(){
 
 	},
 
 	build: (item, cfg) => {
 		var elem = new Elem(item, cfg);
-		$(elem.$item).dblclick(ev => {	
+		$(elem.$item).dblclick(ev => {
 			require('opn')(elem.item.src);
 		});
 		return elem.$item;
