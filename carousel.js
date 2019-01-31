@@ -1340,6 +1340,8 @@ Carousel.prototype = {
 		};
 	},
 
+	
+
 
 	// make it possible to drag&drop local files
 	allowUpload(){
