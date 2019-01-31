@@ -1149,40 +1149,40 @@ Carousel.prototype = {
 		//will create an element with all events and puts it into its place
 	add(link, $before){
 		return new Promise((ok, no) => {
-			console.log(link, $before);
+			console.log(link, link.ext, $before);
 			if(
 				link.protocol == 'fs' && (
-					!link.ext ||
-					['jpg', 'jpeg', 'gif', 'svg', 'png'].indexOf(link.ext) < 0
+					!link.ext || (['jpg', 'jpeg', 'gif', 'svg', 'png'].indexOf(link.ext) == -1)
 				)
 			) return no();
+			//else{
+				var $load = $('<span>', {class: 'load'});
+				if($before && $before.hasClass('thumb')) $load.insertBefore($before);
+				else $load.appendTo(this.$t);
 
-			var $load = $('<span>', {class: 'load'});
-			if($before && $before.hasClass('thumb')) $load.insertBefore($before);
-			else $load.appendTo(this.$t);
+				link.load(item => {
+					console.log(item);
+					if(!item){
+						$load.remove();
+						no();
+						return;
+					}
 
-			link.load(item => {
-				console.log(item);
-				if(!item){
-					$load.remove();
-					no();
-					return;
-				}
+					item.src = item.src || link.http || 'http://f.io.cx/'+item.file;
+					item.type = 'image';
 
-				item.src = item.src || link.http || 'http://f.io.cx/'+item.file;
-				item.type = 'image';
+					console.log(item);
 
-				console.log(item);
+					let $item = pix.build(item, {link});
 
-				let $item = pix.build(item, {link});
+					$load.replaceWith($item);
 
-				$load.replaceWith($item);
+					this.resize($item);
+					this.supportEvents($item);
 
-				this.resize($item);
-				this.supportEvents($item);
-
-				ok($item);
-			});
+					ok($item);
+				});
+			//}
 		});
 	},
 

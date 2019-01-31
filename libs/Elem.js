@@ -85,6 +85,9 @@ $.extend(module.prototype, {
 				t.loadFile(file);
 			}
 			else
+			if(item.src && item.src.toLocaleLowerCase().endsWith('.gif'))
+				t.loadFile(file || item.src);
+			else
 				t.image();
 		}
 		else
@@ -259,20 +262,25 @@ $.extend(module.prototype, {
 	loadFile: function(url){
 		var t = this;
 
-
-
-		var link = new Link(url);
-
 		var image = new Image;
+		if(url.indexOf('http') != 0){
+			var link = new Link(url);
+			url = link.http;
+		}
+
 		image.onload = function(){
 			t.$item.append(image);
 			//t.resize(this.$item);
+
+
+			console.log(link, url);
 
 			var carousel = t.$item.parent()[0].carousel;
 
 			if(typeof carousel == 'object')
 				carousel.resize(t.$item);
 
+			console.log(image);
 			var gif = new Gif(image.src, function(){
 				if(!gif.segments)
 					return;
@@ -300,7 +308,8 @@ $.extend(module.prototype, {
 			t.$item.append(image);
 		};
 
-		image.src = link.http;
+		console.log(url);
+		image.src = url;
 	},
 
 
