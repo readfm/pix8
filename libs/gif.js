@@ -39,7 +39,6 @@ $.extend(Gif.prototype, {
 				source.download((data, file) => {
 					if(!data) return reject();
 
-					return console.log(data);
 					var g = t.g = new GifReader(data);
 					resolve(g);
 				});

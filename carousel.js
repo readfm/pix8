@@ -511,7 +511,7 @@ Carousel.prototype = {
 			},100);
 
 			pix.drag = false;
-      
+
 			var $thumb = $(this).removeClass('drop');
 			$('.draggable').removeClass('draggable');
 
@@ -541,7 +541,7 @@ Carousel.prototype = {
 						console.log(link.http);
 						console.log(item, link);
 						let fileName = link.http.split('/').pop();
-						if(fileName.indexOf('.')<0) fileName = fileName+'.jpg';
+						if(fileName.indexOf('.')<0) fileName = fileName+'.gif';
 						var link_file = new Link(carousel.link.url + '/' + fileName);
 						console.log(link_file);
 						link_file.upload_url(link.http).then(r => {

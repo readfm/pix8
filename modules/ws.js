@@ -114,27 +114,34 @@ WS.prototype = {
 		return msg.cb;
 	},
 
-	download: function(id){
+	download: function(ref){
 		var ws = this;
 		var chunks = [],
 			length = 0;
+
+		console.log(ref);
 
 		ws.onBuf = function(data){
 			length += data.byteLength;
 			chunks.push(new Uint8Array(data));
 		};
 
-		console.log(id);
+    var m = {cmd: 'download'};
+    if((ref.indexOf(':/') + 1) || ref[0] == '/')
+      m.path = ref;
+    else
+      m.id = ref;
 
-		return new Promise(function(resolve, reject){
-			ws.send({cmd: 'download', id}, function(r){
-				console.log(r);
-				if(r.error) return reject(Error(r.error));
+		console.log(m);
+
+		return new Promise((resolve, reject) => {
+			ws.send(m, function(r){
+				if(r.error) return reject(r.error);
 
 				var data = new Uint8Array(length),
 					cur = 0;
 
-				for(i = 0; i < chunks.length; i++){
+				for(var i = 0; i < chunks.length; i++){
 					data.set(chunks[i], cur);
 					cur += chunks[i].byteLength;
 				}
@@ -143,6 +150,7 @@ WS.prototype = {
 			});
 		});
 	},
+
 
 	move: function(x,y){
 		var buf = new ArrayBuffer(5),
