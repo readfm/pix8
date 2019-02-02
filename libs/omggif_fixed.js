@@ -390,7 +390,8 @@ function GifReader(buf) {
   if (global_palette_flag) {
     global_palette_offset = p;
     global_palette_size = num_global_colors;
-    p += num_global_colors * 3;  // Seek past palette.
+    this.colors_index = global_palette_offset = p;
+    p += this.colors_length = num_global_colors * 3;  // Seek past palette.
   }
 
   var no_eof = true;
@@ -620,9 +621,9 @@ function GifReader(buf) {
         var r = buf[palette_offset + index * 3];
         var g = buf[palette_offset + index * 3 + 1];
         var b = buf[palette_offset + index * 3 + 2];
-        pixels[op++] = b;
-        pixels[op++] = g;
         pixels[op++] = r;
+        pixels[op++] = g;
+        pixels[op++] = b;
         pixels[op++] = 255;
       }
       --xleft;
