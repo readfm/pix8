@@ -156,9 +156,10 @@ export default class Link_mongo{
 
     this.item = new Promise((k, n) => {
       this.W({cmd: 'get', filter, collection: this.collection}).then(r => {
+        if(!r.item) return n();
         this.item = r.item;
         this.http = r.item.src || this.http_files + r.item.file;
-        console.log(r, r.item.src || this.http_files + r.item.file, this);
+
         cb(r.item);
         k(r.item);
       });

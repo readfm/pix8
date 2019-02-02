@@ -146,6 +146,8 @@ WS.prototype = {
 					cur += chunks[i].byteLength;
 				}
 
+				console.log(data);
+
 				resolve(data, r.file);
 			});
 		});

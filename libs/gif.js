@@ -8,6 +8,7 @@ window.Gif = function(source, cb){
 			source = source.split('/').pop();
 
 	this.load(source).then(function(){
+		if(!t.g) returnl
 		t.resize();
 
 		t.frame(0);
