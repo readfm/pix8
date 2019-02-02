@@ -59,8 +59,8 @@ export default class Link_mongo{
 
   load_filers(){
     this.fileLinks = {
-      'io.cx': 'http://f.io.cx/',
-      'th.ai': 'http://f.io.cx/',
+      'io.cx': 'https://f.io.cx/',
+      'th.ai': 'https://f.io.cx/',
       'manager.lh': 'http://files.lh/',
       'localhost': 'http://files.lh/',
     };

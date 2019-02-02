@@ -1,4 +1,4 @@
-var Carousel = function(opt){
+ var Carousel = function(opt){
 	var carousel = this;
 
 	this.cfg = $.extend(this.cfg, {
@@ -511,8 +511,7 @@ Carousel.prototype = {
 			},100);
 
 			pix.drag = false;
-
-
+      
 			var $thumb = $(this).removeClass('drop');
 			$('.draggable').removeClass('draggable');
 
@@ -542,7 +541,7 @@ Carousel.prototype = {
 						console.log(link.http);
 						console.log(item, link);
 						let fileName = link.http.split('/').pop();
-						if(fileName.indexOf('.')<0) fileName = filename+'.jpg';
+						if(fileName.indexOf('.')<0) fileName = fileName+'.jpg';
 						var link_file = new Link(carousel.link.url + '/' + fileName);
 						console.log(link_file);
 						link_file.upload_url(link.http).then(r => {
@@ -1340,7 +1339,7 @@ Carousel.prototype = {
 		};
 	},
 
-	
+
 
 
 	// make it possible to drag&drop local files
