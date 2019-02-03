@@ -22,6 +22,17 @@ global.FS = {
 		if(stats.isFIFO()) return 'fifo';
 	},
 
+	isAllowed(path){
+		path = path.replace(/\/$/, "");
+
+		var allowed = false;
+		(Cfg.fs.allowed || []).forEach(apath => {
+			if(path.indexOf(apath) === 0) allowed = true;
+		});
+
+		return allowed;
+	},
+
 	locations: {},
 }
 

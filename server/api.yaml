@@ -26,6 +26,9 @@ loadSet:
 
 fs:
   collection: 'files'
+  allowed:
+    - 'C:/8'
+    - 'C:/88'
   folder:
     item: 'pix8.json'
 
