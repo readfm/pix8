@@ -1332,6 +1332,10 @@ Carousel.prototype = {
 			if(name.length > 35)
 				name = randomString(5);
 
+
+			if(name.indexOf('.') < 0)
+				name = name+'.gif';
+
 			return {
 				name,
 				url
@@ -1378,7 +1382,7 @@ Carousel.prototype = {
 
 			var info = this.url_info(txt);
 
-			console.log(txt);
+			console.log(txt, info);
 			console.log(ev.dataTransfer.files);
 
 
