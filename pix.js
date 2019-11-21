@@ -5,6 +5,7 @@ var pix = Pix = {
 	def: 'pix8',
 
 	ready: [],
+	onSession: [],
 
 	tid: 449,
 
@@ -40,10 +41,134 @@ var pix = Pix = {
 	$items: {},
 
 	// items already loaded from database
+	items: window.Data?Data.items:{},
+
+	// builds required element for carousel
+	build: function(d){
+		if(typeof d == 'string')
+			d = {src: d};
+
+		if(d.file && !d.src)
+			d.src = Cfg.files+d.file
+
+		var file = d.file;
+		if(!file && d.src){
+			if(d.src.indexOf(Cfg.files) === 0)
+				file = d.src.substr(Cfg.files.length);
+		}
+
+		var url = d.src;
+		var t = this,
+			$thumb = $(document.createElement('span'));
+
+		$thumb.data(d);
+		console.log(d);
+		$thumb.attr('title', d.id);
+
+		if(d.src){
+			var video = pix.parseVideoURL(d.src),
+				vid = video.provider;
+		}
+
+		if(video && video.provider == 'youtube'){
+			var thumb = 'http://img.youtube.com/vi/'+video.id+'/sddefault.jpg';
+
+			var frame = document.createElement("iframe");
+				frame.src = 'http://www.youtube.com/embed/'+video.id;
+			$thumb.addClass('youtube').append(frame);
+			$thumb.append("<div class='iframe-cover'></div>");
+		}
+		else
+		// iframe from ggif website
+		if(url && url.indexOf('ggif.co')+1){
+			var p = url.replace('http://', '').split(/[\/]+/);
+			//var thumb = 'http://'+p[0]+'/'+p[1]+'/'+p[1]+'.gif';
+
+			var frame = document.createElement("iframe");
+			frame.onload = function(){
+				var $carousel = $thumb.parent();
+				if($carousel.length){
+					var carousel = $carousel[0].carousel;
+					carousel.resize($thumb);
+				}
+			}
+			frame.onerror = function(){
+				$thumb.parent().children('span[href="'+url+'"]').remove();
+				var $carousel = $thumb.parent();
+				if($carousel.length)
+					$carousel[0].expand();
+
+				pix.cleanTargets();
+			}
+				//frame.width = h;
+				//frame.height = h;
+				frame.src = url.replace('http://', 'https://');
+			$thumb.addClass('ggif').append(frame);
+			$thumb.append("<div class='iframe-cover'></div>");
+		}
+		else
+		if(file){
+			$thumb.addClass('file');
+			carousel.resize($thumb);
+			$thumb.css({'background-image': "url("+Cfg.thumber+url.replace('://', '/')+")"});
+			Pix.loadFile(file, $thumb);
+		}
+		else{
+			var image = new Image;
+			image.onload = function(){
+				console.log(image.src);
+				var $thumbs = $thumb.parent().children('span[href="'+url+'"]');
+				$thumbs.css('background-image', '');
+
+				var $carousel = $thumb.parent();
+				if($carousel.length){
+					var carousel = $carousel[0].carousel;
+					carousel.resize($thumb);
+				}
+			}
+			image.onerror = function(){
+				var $thumbs = $thumb.parent().children('span[href="'+url+'"]');
+
+				/*
+				if(image.src.indexOf(Local.api)+1)
+					return $thumbs.children('img').attr('src', thumb || url);
+				*/
+
+				$thumbs.remove();
+
+				var $carousel = $thumb.parent();
+
+				pix.cleanTargets();
+			}
+
+			var name = url.split(/(\\|\/)/g).pop();
+			image.src = carousel.formatUrl(url);
+
+			image.alt = thumb || url;
+
+			$thumb.append(image);
+		}
+
+		$thumb.attr({
+			href: d.href || url,
+			name: 'item'+d.id
+		});
+
+		$thumb.addClass('thumb');
+
+		if(d.text)
+			pix.appendText(d.text, $thumb);
+
+		$("<div class='n'></div>").appendTo($thumb).hide();
+
+		pix.$items[d.id] = $thumb;
+
+		return $thumb;
+	},
 
 	carousel: function(tag){
 		var carousel = new Carousel({
-			name: 'images',
+			name: 'site images',
 			onAdd: function(url, $thumb){
 				carousel.include(url, $thumb);
 			},
@@ -51,48 +176,16 @@ var pix = Pix = {
 			preloadGoogle: false
 		});
 
-		var $carouselLast = $('#pic > .carousel').last();
-		carousel.$t.insertAfter($carouselLast[0] || $('#pix8-header'));
+		carousel.$t.appendTo(Pix.$pic);
 		carousel.onTag(tag);
-
-		Pix8.resize();
-
-		return carousel;
-	},
-
-
-	download: function(id, cb){
-		var x = new XMLHttpRequest();
-		x.open('GET', blobchromeextensionurlhere);
-		x.responseType = 'blob';
-		x.onload = function() {
-		    var url = URL.createObjectURL(x.response);
-		    // Example: blob:http%3A//example.com/17e9d36c-f5cd-48e6-b6b9-589890de1d23
-		    // Now pass url to the page, e.g. using postMessage
-		};
-		x.send();
-		return;
-
-		if(typeof ws != "undefined" && ws instanceof WS)
-			ws.download(id, cb);
-		else
-		if(chrome && chrome.runtime)
-			chrome.runtime.sendMessage({cmd: 'download', id: id}, function(r){
-				console.log(URL.revokeObjectURL(r));
-			});
-		else
-			console.error('No way to interact with server');
 	},
 
 	onTag: function(){
 
 	},
 
-	build: (item, cfg) => {
-		var elem = new Elem(item, cfg);
-		$(elem.$item).dblclick(ev => {
-			require('opn')(elem.item.src);
-		});
+	build: item => {
+		var elem = new Elem(item);
 		return elem.$item;
 	},
 
@@ -135,15 +228,90 @@ var pix = Pix = {
 
 	// send request to socket or to background app if its chrome extension
 	send: function(m, cb){
-		return;
-		if(typeof ws != "undefined" && ws instanceof WS)
-			ws.send(m, cb);
+		if(typeof ws != "undefined" && ws instanceof WS){
+			console.log(m);
+			if(!window.dbz){
+				ws.send(m, r => cb(r));
+			}
+			else
+			if(m.cmd == 'update' && m.set && m.id){
+				let collection = dbz.collection(m.collection);
+				collection.update({id: m.id}, m.set);
+
+				if(Pix.session)
+					ws.send(m, r => {
+						collection.insert(r.items || r.item).then(r => console.log(r));
+						cb(r);
+						console.log(r);
+					});
+			}
+			else
+			if(
+				(m.cmd == 'get' || m.cmd == 'load') && 
+				m.filter && m.collection
+			){
+				let collection = dbz.collection(m.collection);
+				collection.find(m.filter).toArray((err, items) => {
+					console.log(items);
+
+					let send = () => {
+						ws.send(m, r => {
+							collection.insert(r.items || r.item).then(r => console.log(r));
+							cb(r);
+							console.log(r);
+						});
+					}
+
+					if(items && items.length){
+						if(m.cmd == 'get') cb({item: items[0]});
+						else cb({items});
+					}
+					else
+					if(pix.session)
+						send();
+					else
+					Pix.onSession.push(ses => {
+						send();
+					});
+				});
+			}
+			else
+			if(Pix.session)
+				ws.send(m, r => cb(r));
+			else
+				Pix.onSession.push(ses => {
+					ws.send(m, r => cb(r));
+				});
+		}
 		else
 		if(chrome && chrome.runtime)
 			chrome.runtime.sendMessage({cmd: 'ws', d: m}, cb);
 		else
 			console.error('No way to interact with server');
 
+	},
+
+	download: function(id, cb){
+		var x = new XMLHttpRequest();
+		x.open('GET', blobchromeextensionurlhere);
+		x.responseType = 'blob';
+		x.onload = function() {
+		    var url = URL.createObjectURL(x.response);
+		    // Example: blob:http%3A//example.com/17e9d36c-f5cd-48e6-b6b9-589890de1d23
+		    // Now pass url to the page, e.g. using postMessage
+		};
+		x.send();
+		return;
+
+		if(typeof ws != "undefined" && ws instanceof WS)
+			ws.download(id, cb);
+		else
+		if(chrome && chrome.runtime)
+			chrome.runtime.sendMessage({cmd: 'download', id: id}, function(r){
+				console.log(URL.revokeObjectURL(r));
+			});
+		else
+			console.error('No way to interact with server');
 	},
 
 	// put text over thumbnail
@@ -188,7 +356,7 @@ var pix = Pix = {
 	preload: function(ids){
 		var newIds = [];
 		ids.forEach(function(id){
-			if(!Data.items[id])
+			if(!Pix.items[id])
 				newIds.push(id);
 		});
 
@@ -202,7 +370,7 @@ var pix = Pix = {
 					collection: Cfg.collection
 				}, function(r){
 					(r.items || []).forEach(function(item){
-						Data.items[item.id] = item;
+						Pix.items[item.id] = item;
 					});
 
 					resolve();
@@ -339,7 +507,7 @@ var pix = Pix = {
 
 	unusedIds: function(){
 		var ids = [];
-		for(var id in Data.items){
+		for(var id in pix.items){
 			if(!$('#carousels span[name=item'+id+']').length){
 		    	ids.push(parseInt(id));
 			}
@@ -378,6 +546,7 @@ var pix = Pix = {
 			},
 			collection: 'views'
 		}, function(r){
+			console.log(r.item);
 			if(r && r.item){
 				Pix.send({
 					cmd: 'makeFirst',
@@ -446,34 +615,12 @@ var pix = Pix = {
 	},
 
 	leaveGap: function(px){
-		if(window.Electron) return;
-
-		if(!px) px = Pix.height();
-
-		/*
-		if(window.chrome && window.chrome.runtime){
-			$('#pic').css('margin-top', -px+'px');
-			Pix.transform(px);
-			return;
-		}
-		*/
-
 		Pix.$fixed.each(function(){
 			var $el = $(this);
 			$el.css('top', $el.data('_pix8-top') + px);
 		});
 
 		$('body').css('margin-top', Pix.marginBody + px);
-	},
-
-	height(){
-		var h = $('#pix8-header').height();
-
-		$('#pic > .carousel:visible').each(function(){
-			h += this.clientHeight;
-		});
-
-		return h;
 	},
 
 	restoreGap: function(){
@@ -494,8 +641,7 @@ var pix = Pix = {
 			$('<style>', {id: id}).appendTo('body')
 		*/
 
-		chrome.runtime.sendMessage({cmd: 'resize', height: px});
-		//$('body').css('tranform', px?('translateY('+px+'px)'):'none');
+		$('body').css('tranform', px?('translateY('+px+'px)'):'none');
 	},
 
 	checkJquery: function(){
