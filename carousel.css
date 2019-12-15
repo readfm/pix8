@@ -249,6 +249,10 @@ display: none !important;
 	right: 0;
 }
 
+.thumb.toggle{
+	opacity: 0.6 !important;
+}
+
 .thumb > article{
 	top: 0;
 	position: absolute;
