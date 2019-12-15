@@ -324,3 +324,13 @@ display: none !important;
 .green{
 	background-color: rgba(0, 138, 0, 0.8) !important;
 }
+
+
+.elem-trash ~ * {
+	display: none;
+}
+
+.elem-trash.toggle ~ *, 
+.elem-trash.draggable ~ *{
+	display: inline-block;
+}
